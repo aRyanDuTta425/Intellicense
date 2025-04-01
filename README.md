@@ -1,4 +1,4 @@
-# IntelLicense ![IntelLicense Logo](https://img.shields.io/badge/IntelLicense-AI%20Compliance-blue)
+# IntelliCense ![IntelLicense Logo](https://img.shields.io/badge/IntelLicense-AI%20Compliance-blue)
 
 **IntelLicense** is an AI-powered tool designed to scan digital content for potential copyright risks and help organizations ensure compliance with digital rights and licensing regulations. The system leverages Retrieval-Augmented Generation (RAG) models to provide real-time legal suggestions and precedents.
 
