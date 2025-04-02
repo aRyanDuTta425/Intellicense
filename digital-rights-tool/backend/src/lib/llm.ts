@@ -95,8 +95,6 @@ export async function analyzeLicensing(content: string): Promise<{
 }
 
 
-export const generateLegalAnswer=()=>{
-  //to be iplemented
-  return;
-
-}
+export const generateLegalAnswer = async (question: string, context?: string): Promise<string> => {
+  return "This is a placeholder legal answer."; // Temporary response
+};
