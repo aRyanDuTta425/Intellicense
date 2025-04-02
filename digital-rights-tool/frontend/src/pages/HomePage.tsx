@@ -1,9 +1,11 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { ArrowRight, Shield, FileText, MessageSquare, Upload, CheckCircle, AlertTriangle } from 'lucide-react';
+
+import { ArrowRight, Shield, FileText, MessageSquare, Upload, CheckCircle} from 'lucide-react';
 
 export const HomePage: React.FC = () => {
+  // @ts-ignore
   const { isAuthenticated, user } = useAuth();
 
   return (

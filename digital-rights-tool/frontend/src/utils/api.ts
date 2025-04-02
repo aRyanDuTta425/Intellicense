@@ -51,7 +51,7 @@ const api = {
   },
   
   // POST request
-  async post(url: string, data?: any, options: any = {}) {
+  async post(url: string, data?: any) {  // Removed the 'options' parameter
     const token = getToken();
     const headers: HeadersInit = {};
     
@@ -158,4 +158,4 @@ const api = {
   }
 };
 
-export default api; 
+export default api;

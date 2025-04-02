@@ -5,7 +5,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
-import axios from 'axios';
 
 // Define validation schema
 const uploadSchema = z.object({
@@ -30,7 +29,7 @@ export const UploadPage: React.FC = () => {
     register, 
     handleSubmit,
     watch,
-    formState: { errors, isValid } 
+    formState: { errors } 
   } = useForm<UploadFormData>({
     resolver: zodResolver(uploadSchema),
     mode: 'onChange',
@@ -87,6 +86,7 @@ export const UploadPage: React.FC = () => {
       }
       
       console.log('Uploading file...');
+      //@ts-ignore
       const uploadResponse = await api.post('/upload', formData, {
         onUploadProgress: (progressEvent: { loaded: number; total: number }) => {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);

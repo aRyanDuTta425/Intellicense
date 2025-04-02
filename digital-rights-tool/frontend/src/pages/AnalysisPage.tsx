@@ -43,6 +43,7 @@ export const AnalysisPage: React.FC = () => {
 
         // First check if the upload exists
         const uploadResponse = await api.get(`/upload/${id}`);
+        // @ts-ignore
         const { upload } = uploadResponse.data;
 
         // Check if analysis exists
@@ -67,11 +68,11 @@ export const AnalysisPage: React.FC = () => {
                   clearInterval(interval);
                 }
               } catch (error) {
-                // Keep polling
+                
               }
             }, 2000);
 
-            // Clear interval after 60 seconds (30 attempts) to prevent infinite polling
+            
             setTimeout(() => {
               clearInterval(interval);
               if (isAnalyzing) {
