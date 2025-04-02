@@ -93,3 +93,10 @@ export async function analyzeLicensing(content: string): Promise<{
     };
   }
 }
+
+
+export const generateLegalAnswer=()=>{
+  //to be iplemented
+  return;
+
+}
