@@ -8,7 +8,9 @@ import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
 import { register, login, getProfile } from './controllers/auth';
 import { verifyToken } from './middleware/auth';
-import authRoutes from './routes/auth';
+import { authRoutes } from './routes/auth';
+import { uploadRoutes } from './routes/upload';
+import { analysisRoutes } from './routes/analysis';
 
 // Load environment variables
 dotenv.config();
@@ -81,10 +83,6 @@ app.use((req: express.Request, res: express.Response) => {
     timestamp: new Date().toISOString()
   });
 });
-
-// Import routes
-import uploadRoutes from './routes/upload';
-import analysisRoutes from './routes/analysis';
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
