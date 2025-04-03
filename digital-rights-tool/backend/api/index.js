@@ -1,6 +1,4 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node';
-
-export default async function handler(req: VercelRequest, res: VercelResponse) {
+module.exports = async (req, res) => {
   // Log the request details
   console.log('Request received:', {
     method: req.method,
@@ -35,4 +33,4 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     message: `Route ${req.method} ${req.url} not found`,
     timestamp: new Date().toISOString()
   });
-} 
+}; 
