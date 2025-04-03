@@ -35,7 +35,6 @@ app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   console.log('Headers:', req.headers);
   console.log('Environment:', process.env.NODE_ENV);
-  console.log('Vercel:', process.env.VERCEL);
   next();
 });
 
@@ -59,8 +58,7 @@ app.get('/', (req, res) => {
     status: 'running',
     version: '1.0.0',
     timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV,
-    vercel: process.env.VERCEL
+    environment: process.env.NODE_ENV
   });
 });
 
@@ -129,13 +127,11 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Only start the server if we're not in a serverless environment
-if (!process.env.VERCEL) {
-  app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-  });
-}
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Environment: ${process.env.NODE_ENV}`);
+});
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {
