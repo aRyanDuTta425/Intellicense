@@ -1,16 +1,12 @@
-import express from 'express';
+import { Router } from 'express';
 import { register, login, getProfile } from '../controllers/auth';
-import { authenticate } from '../middleware/auth';
+import { verifyToken } from '../middleware/auth';
 
-const router = express.Router();
+const router = Router();
 
-// Register a new user
+// Auth routes
 router.post('/register', register);
-
-// Login
 router.post('/login', login);
-
-// Get user profile
-router.get('/profile', authenticate, getProfile);
+router.get('/profile', verifyToken, getProfile);
 
 export default router; 

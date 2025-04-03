@@ -1,12 +1,14 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { Env } from "../types";
 
-const GEMINI_API_KEY: string | undefined = process.env.GEMINI_API_KEY;
+let genAI: GoogleGenerativeAI;
 
-if (!GEMINI_API_KEY) {
-  throw new Error("Missing GEMINI_API_KEY in environment variables.");
+export function initializeGenAI(env: Env) {
+  if (!env.GEMINI_API_KEY) {
+    throw new Error("Missing GEMINI_API_KEY in environment variables.");
+  }
+  genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
 }
-
-const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 
 // Maximum number of retries for rate limits
 const MAX_RETRIES = 3;
@@ -19,6 +21,10 @@ async function delay(ms: number): Promise<void> {
 
 // Helper function to call Gemini API with retry logic
 export async function callGeminiAPI(prompt: string, maxRetries = MAX_RETRIES): Promise<string> {
+  if (!genAI) {
+    throw new Error("GenAI not initialized. Call initializeGenAI first.");
+  }
+
   let retryCount = 0;
   let retryDelay = INITIAL_RETRY_DELAY;
 
@@ -26,8 +32,8 @@ export async function callGeminiAPI(prompt: string, maxRetries = MAX_RETRIES): P
     try {
       const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash-lite" }); // Ensure correct model name
       const result = await model.generateContent(prompt);
-      const response = result.response; // Correct way to access response
-      return response.text(); // Extracting text properly
+      const response = result.response;
+      return response.text();
     } catch (error: any) {
       console.error(`Error calling Gemini API: ${error.message}`);
 
@@ -93,7 +99,6 @@ export async function analyzeLicensing(content: string): Promise<{
     };
   }
 }
-
 
 export const generateLegalAnswer = async (question: string, context?: string): Promise<string> => {
   return "This is a placeholder legal answer."; // Temporary response

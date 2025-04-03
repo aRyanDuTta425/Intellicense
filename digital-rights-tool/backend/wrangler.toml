@@ -1,0 +1,21 @@
+name = "digital-rights-tool-backend"
+main = "src/worker.ts"
+compatibility_date = "2024-09-23"
+compatibility_flags = ["nodejs_compat"]
+
+# D1 Database
+[[d1_databases]]
+binding = "DB"
+database_name = "digital-rights-tool"
+database_id = "7d0c2648-cc8a-4b3f-aee4-f46bf95426c2"
+
+# KV Namespace for users
+[[kv_namespaces]]
+binding = "USERS"
+id = "aa2c302ed32e496381e8959528d20d91"
+preview_id = "users-kv-preview"
+
+# Environment variables
+[vars]
+DATABASE_URL = "postgresql://aryandutta425:2c4c2c4c2c4c2c4c2c4c2c4c2c4c2c4c2@ep-cool-forest-123456.us-east-2.aws.neon.tech/neondb?sslmode=require"
+JWT_SECRET = "your-secret-key-here" 

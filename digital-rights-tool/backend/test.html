@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Rights Tool - Test Page</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .response {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #f5f5f5;
+            border-radius: 3px;
+            white-space: pre-wrap;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        input[type="file"] {
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Digital Rights Tool - Test Page</h1>
+
+    <div class="section">
+        <h2>Authentication</h2>
+        <div>
+            <h3>Register</h3>
+            <input type="email" id="registerEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="registerPassword" placeholder="Password" value="test123456">
+            <input type="text" id="registerName" placeholder="Name" value="Test User">
+            <button onclick="register()">Register</button>
+            <div id="registerResponse" class="response"></div>
+        </div>
+
+        <div>
+            <h3>Login</h3>
+            <input type="email" id="loginEmail" placeholder="Email" value="test@example.com">
+            <input type="password" id="loginPassword" placeholder="Password" value="test123456">
+            <button onclick="login()">Login</button>
+            <div id="loginResponse" class="response"></div>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>File Upload</h2>
+        <input type="file" id="fileInput">
+        <select id="fileType">
+            <option value="IMAGE">Image</option>
+            <option value="ARTICLE">Article</option>
+            <option value="VIDEO">Video</option>
+        </select>
+        <button onclick="uploadFile()">Upload</button>
+        <div id="uploadResponse" class="response"></div>
+    </div>
+
+    <div class="section">
+        <h2>Get Uploads</h2>
+        <button onclick="getUploads()">Get Uploads</button>
+        <div id="getUploadsResponse" class="response"></div>
+    </div>
+
+    <div class="section">
+        <h2>Analysis</h2>
+        <input type="text" id="uploadId" placeholder="Upload ID">
+        <button onclick="analyzeContent()">Analyze Content</button>
+        <div id="analyzeResponse" class="response"></div>
+    </div>
+
+    <div class="section">
+        <h2>Get Analyses</h2>
+        <button onclick="getAnalyses()">Get Analyses</button>
+        <div id="getAnalysesResponse" class="response"></div>
+    </div>
+
+    <script>
+        const BASE_URL = 'https://digital-rights-tool-backend.aryandutta425.workers.dev';
+        let token = '';
+
+        async function register() {
+            const email = document.getElementById('registerEmail').value;
+            const password = document.getElementById('registerPassword').value;
+            const name = document.getElementById('registerName').value;
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/register`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password, name }),
+                });
+                const data = await response.json();
+                document.getElementById('registerResponse').textContent = JSON.stringify(data, null, 2);
+                if (data.token) {
+                    token = data.token;
+                }
+            } catch (error) {
+                document.getElementById('registerResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function login() {
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/auth/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await response.json();
+                document.getElementById('loginResponse').textContent = JSON.stringify(data, null, 2);
+                if (data.token) {
+                    token = data.token;
+                }
+            } catch (error) {
+                document.getElementById('loginResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function uploadFile() {
+            const fileInput = document.getElementById('fileInput');
+            const fileType = document.getElementById('fileType').value;
+            const file = fileInput.files[0];
+
+            if (!file) {
+                alert('Please select a file');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('fileType', fileType);
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/uploads`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                    body: formData,
+                });
+                const data = await response.json();
+                document.getElementById('uploadResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('uploadResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getUploads() {
+            try {
+                const response = await fetch(`${BASE_URL}/api/uploads`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+                document.getElementById('getUploadsResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('getUploadsResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function analyzeContent() {
+            const uploadId = document.getElementById('uploadId').value;
+            if (!uploadId) {
+                alert('Please enter an upload ID');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${BASE_URL}/api/analyses/${uploadId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+                document.getElementById('analyzeResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('analyzeResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+
+        async function getAnalyses() {
+            try {
+                const response = await fetch(`${BASE_URL}/api/analyses`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                    },
+                });
+                const data = await response.json();
+                document.getElementById('getAnalysesResponse').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('getAnalysesResponse').textContent = `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html> 

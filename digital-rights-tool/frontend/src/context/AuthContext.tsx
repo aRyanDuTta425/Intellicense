@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
+import api from '../utils/api';
 
 // User type definition
 export interface User {
@@ -59,27 +60,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name, email, password }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const response = await api.post('/auth/register', { name, email, password });
       
       // Store token and user in localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
       // Update state
-      setToken(data.token);
-      setUser(data.user);
+      setToken(response.data.token);
+      setUser(response.data.user);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Registration error:', error);
@@ -95,27 +84,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setError(null);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      
-      const data = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(data.message || 'Login failed');
-      }
+      const response = await api.post('/auth/login', { email, password });
       
       // Store token and user in localStorage
-      localStorage.setItem('token', data.token);
-      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('user', JSON.stringify(response.data.user));
 
       // Update state
-      setToken(data.token);
-      setUser(data.user);
+      setToken(response.data.token);
+      setUser(response.data.user);
       setIsAuthenticated(true);
     } catch (error) {
       console.error('Login error:', error);

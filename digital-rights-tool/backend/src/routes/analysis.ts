@@ -1,13 +1,19 @@
-import express from 'express';
-import { analyzeContent, getAnalysisById } from '../controllers/analysis';
-import { authenticate } from '../middleware/auth';
+import { Hono } from 'hono';
+import { analyzeContent, getAnalysisById, getUserAnalyses, deleteAnalysis } from '../controllers/analysis';
+import { verifyToken } from '../middleware/auth';
 
-const router = express.Router();
+const router = new Hono();
 
 // Create analysis for an upload
-router.post('/:uploadId', authenticate, analyzeContent);
+router.post('/:uploadId', verifyToken, analyzeContent);
 
 // Get analysis for an upload
-router.get('/:uploadId', authenticate, getAnalysisById);
+router.get('/:id', verifyToken, getAnalysisById);
 
-export default router; 
+// Get all analyses for a user
+router.get('/', verifyToken, getUserAnalyses);
+
+// Delete an analysis
+router.delete('/:id', verifyToken, deleteAnalysis);
+
+export const analysisRoutes = router; 

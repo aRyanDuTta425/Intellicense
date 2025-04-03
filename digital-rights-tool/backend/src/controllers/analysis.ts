@@ -1,146 +1,221 @@
-import { Request, Response } from "express";
-import { prisma } from "../index";
-import { AuthRequest } from "../utils/types";
-import { analyzeLicensing } from "../lib/llm";
-import fs from "fs";
-import path from "path";
+import { HonoContext } from '../types';
+import { analyzeLicensing } from '../lib/llm';
+import { Analysis, Upload, KV_KEYS } from '../types';
 
-// Analyze content for an upload ID
-export const analyzeContent = async (req: AuthRequest, res: Response) => {
+// Helper function to convert ReadableStream to text
+async function streamToText(stream: ReadableStream<Uint8Array>): Promise<string> {
+  const reader = stream.getReader();
+  const chunks: Uint8Array[] = [];
+  
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+  }
+
+  const concatenated = new Uint8Array(chunks.reduce((acc, chunk) => acc + chunk.length, 0));
+  let offset = 0;
+  for (const chunk of chunks) {
+    concatenated.set(chunk, offset);
+    offset += chunk.length;
+  }
+
+  return new TextDecoder().decode(concatenated);
+}
+
+// Analyze content
+export async function analyzeContent(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    const { uploadId } = req.params;
-
-    if (!uploadId || typeof uploadId !== "string") {
-      return res.status(400).json({ message: "Invalid upload ID" });
+    const { uploadId } = c.req.param();
+    if (!uploadId) {
+      return c.json({ message: 'Upload ID is required' }, 400);
     }
 
-    // Find the upload
-    const upload = await prisma.upload.findUnique({
-      where: { id: uploadId },
-    });
-
+    console.log('Getting upload:', uploadId);
+    // Get upload
+    const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(uploadId));
+    console.log('Upload data:', upload);
     if (!upload) {
-      return res.status(404).json({ message: "Upload not found" });
+      return c.json({ message: 'Upload not found' }, 404);
     }
 
-    // Ensure user owns the upload
-    if (upload.userId !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to analyze this content" });
+    const uploadData = JSON.parse(upload) as Upload;
+    console.log('Parsed upload data:', uploadData);
+    if (uploadData.userId !== user.id) {
+      return c.json({ message: 'Not authorized to analyze this upload' }, 403);
     }
 
-    // Check if analysis already exists
-    const existingAnalysis = await prisma.analysis.findUnique({
-      where: { uploadId },
-    });
+    // Get file from R2
+    console.log('Getting file from R2:', uploadData.fileUrl);
+    const file = await c.env.UPLOADS.get(uploadData.fileUrl);
+    console.log('File found:', !!file);
+    if (!file) {
+      return c.json({ message: 'File not found in storage' }, 404);
+    }
 
-    if (existingAnalysis) {
-      return res.status(400).json({
-        message: "Analysis already exists for this content",
-        analysisId: existingAnalysis.id,
+    // Convert file to text
+    console.log('Converting file to text');
+    const response = new Response(file.body);
+    const buffer = await response.arrayBuffer();
+    const text = new TextDecoder().decode(buffer);
+    console.log('File content:', text.substring(0, 100));
+
+    // Analyze content
+    console.log('Analyzing content');
+    const { licensingInfo, licensingSummary, riskScore } = await analyzeLicensing(text);
+    console.log('Analysis result:', { licensingInfo, licensingSummary, riskScore });
+
+    // Create analysis
+    const analysis: Analysis = {
+      id: crypto.randomUUID(),
+      uploadId: uploadData.id,
+      licensingInfo,
+      licensingSummary,
+      riskScore,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Store analysis in KV
+    console.log('Storing analysis:', analysis.id);
+    await c.env.ANALYSES.put(KV_KEYS.ANALYSIS_BY_ID(analysis.id), JSON.stringify(analysis));
+
+    // Add analysis ID to upload's analyses list
+    console.log('Updating upload analyses list');
+    const uploadAnalyses = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_ANALYSES(uploadData.id));
+    const analyses = uploadAnalyses ? JSON.parse(uploadAnalyses) : [];
+    analyses.push(analysis.id);
+    await c.env.ANALYSES.put(KV_KEYS.UPLOAD_ANALYSES(uploadData.id), JSON.stringify(analyses));
+
+    return c.json(analysis);
+  } catch (error) {
+    console.error('Analysis error:', error);
+    return c.json({ message: 'Analysis failed', error: error instanceof Error ? error.message : 'Unknown error' }, 500);
+  }
+}
+
+// Get analysis by ID
+export async function getAnalysisById(c: HonoContext) {
+  try {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
+    }
+
+    const { id } = c.req.param();
+    
+    const analysis = await c.env.ANALYSES.get(KV_KEYS.ANALYSIS_BY_ID(id));
+    if (!analysis) {
+      return c.json({ message: 'Analysis not found' }, 404);
+    }
+
+    const analysisData = JSON.parse(analysis) as Analysis;
+    
+    // Get upload to check ownership
+    const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(analysisData.uploadId));
+    if (!upload) {
+      return c.json({ message: 'Upload not found' }, 404);
+    }
+
+    const uploadData = JSON.parse(upload) as Upload;
+    if (uploadData.userId !== user.id) {
+      return c.json({ message: 'Not authorized to access this analysis' }, 403);
+    }
+
+    return c.json(analysisData);
+  } catch (error) {
+    console.error('Get analysis error:', error);
+    return c.json({ message: 'Failed to get analysis' }, 500);
+  }
+}
+
+// Get all analyses for user
+export async function getUserAnalyses(c: HonoContext) {
+  try {
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
+    }
+
+    // Get user's uploads
+    const userUploads = await c.env.ANALYSES.get(KV_KEYS.USER_UPLOADS(user.id));
+    if (!userUploads) {
+      return c.json([]);
+    }
+
+    const uploadIds = JSON.parse(userUploads);
+    
+    // Get all analyses for user's uploads
+    const analysesPromises = uploadIds.map(async (uploadId: string) => {
+      const uploadAnalyses = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_ANALYSES(uploadId));
+      if (!uploadAnalyses) return [];
+      
+      const analysisIds = JSON.parse(uploadAnalyses);
+      const analysisPromises = analysisIds.map(async (analysisId: string) => {
+        const analysis = await c.env.ANALYSES.get(KV_KEYS.ANALYSIS_BY_ID(analysisId));
+        return analysis ? JSON.parse(analysis) : null;
       });
-    }
-
-    let contentToAnalyze = "";
-
-    try {
-      const filePath = upload.fileUrl.startsWith("http")
-        ? null
-        : path.resolve(process.cwd(), upload.fileUrl.replace(/^\//, ""));
-
-      if (filePath && fs.existsSync(filePath)) {
-        if (upload.fileType === "ARTICLE") {
-          contentToAnalyze = fs.readFileSync(filePath, "utf-8");
-        } else {
-          contentToAnalyze = `File name: ${upload.fileName}, File type: ${upload.fileType}`;
-          if (upload.contentType) {
-            contentToAnalyze += `, Content type: ${upload.contentType}`;
-          }
-        }
-      } else {
-        contentToAnalyze = `File name: ${upload.fileName}, File type: ${upload.fileType}`;
-        if (upload.contentType) {
-          contentToAnalyze += `, Content type: ${upload.contentType}`;
-        }
-      }
-    } catch (error) {
-      console.error("Error reading file:", error);
-      contentToAnalyze = `File name: ${upload.fileName}, File type: ${upload.fileType}`;
-    }
-
-    console.log(`Analyzing content: ${contentToAnalyze.substring(0, 100)}...`);
-
-    // Analyze content using Gemini
-    const analysisResult = await analyzeLicensing(contentToAnalyze);
-
-    // Save analysis result in the database
-    const analysis = await prisma.analysis.create({
-      data: {
-        uploadId,
-        licensingInfo: analysisResult.licensingInfo,
-        licensingSummary: analysisResult.licensingSummary,
-        riskScore: analysisResult.riskScore,
-      },
+      
+      return Promise.all(analysisPromises);
     });
 
-    return res.status(201).json({
-      message: "Content analysis completed",
-      analysis,
-    });
-  } catch (error: any) {
-    console.error("Analysis error:", error);
-    return res.status(500).json({ message: "Server error during analysis", error: error.message });
+    const analysesArrays = await Promise.all(analysesPromises);
+    const analyses = analysesArrays.flat().filter(Boolean);
+
+    return c.json(analyses);
+  } catch (error) {
+    console.error('Get analyses error:', error);
+    return c.json({ message: 'Failed to get analyses' }, 500);
   }
-};
+}
 
-// Get analysis by upload ID
-export const getAnalysisById = async (req: AuthRequest, res: Response) => {
+// Delete analysis
+export async function deleteAnalysis(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: "Authentication required" });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    const { uploadId } = req.params;
-
-    if (!uploadId || typeof uploadId !== "string") {
-      return res.status(400).json({ message: "Invalid upload ID" });
+    const { id } = c.req.param();
+    
+    const analysis = await c.env.ANALYSES.get(KV_KEYS.ANALYSIS_BY_ID(id));
+    if (!analysis) {
+      return c.json({ message: 'Analysis not found' }, 404);
     }
 
-    const upload = await prisma.upload.findUnique({
-      where: { id: uploadId },
-      include: { analysis: true },
-    });
-
+    const analysisData = JSON.parse(analysis) as Analysis;
+    
+    // Get upload to check ownership
+    const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(analysisData.uploadId));
     if (!upload) {
-      return res.status(404).json({ message: "Upload not found" });
+      return c.json({ message: 'Upload not found' }, 404);
     }
 
-    // Ensure user owns the upload
-    if (upload.userId !== req.user.id) {
-      return res.status(403).json({ message: "Not authorized to access this analysis" });
+    const uploadData = JSON.parse(upload) as Upload;
+    if (uploadData.userId !== user.id) {
+      return c.json({ message: 'Not authorized to delete this analysis' }, 403);
     }
 
-    if (!upload.analysis) {
-      return res.status(404).json({ message: "Analysis not found for this upload" });
+    // Delete analysis from KV
+    await c.env.ANALYSES.delete(KV_KEYS.ANALYSIS_BY_ID(id));
+    
+    // Remove analysis ID from upload's analyses list
+    const uploadAnalyses = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_ANALYSES(analysisData.uploadId));
+    if (uploadAnalyses) {
+      const analyses = JSON.parse(uploadAnalyses);
+      const updatedAnalyses = analyses.filter((analysisId: string) => analysisId !== id);
+      await c.env.ANALYSES.put(KV_KEYS.UPLOAD_ANALYSES(analysisData.uploadId), JSON.stringify(updatedAnalyses));
     }
 
-    return res.json({
-      analysis: {
-        ...upload.analysis,
-        upload: {
-          id: upload.id,
-          fileName: upload.fileName,
-          fileType: upload.fileType,
-          fileUrl: upload.fileUrl,
-          createdAt: upload.createdAt,
-        },
-      },
-    });
-  } catch (error: any) {
-    console.error("Error fetching analysis:", error);
-    return res.status(500).json({ message: "Server error while fetching analysis", error: error.message });
+    return c.json({ message: 'Analysis deleted successfully' });
+  } catch (error) {
+    console.error('Delete analysis error:', error);
+    return c.json({ message: 'Failed to delete analysis' }, 500);
   }
-};
+}

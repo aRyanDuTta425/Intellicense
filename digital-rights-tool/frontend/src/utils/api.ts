@@ -1,10 +1,10 @@
 // Fetch-based API client
 
-// Helper function to get auth token
-const getToken = () => localStorage.getItem('token');
-
 // Base API URL
-const baseURL = '/api';
+const baseURL = 'https://digital-rights-tool-backend.aryandutta425.workers.dev';
+
+// Log the base URL for debugging
+console.log('API Base URL:', baseURL);
 
 // Helper to handle unauthorized responses
 const handleUnauthorized = () => {
@@ -18,143 +18,173 @@ const handleUnauthorized = () => {
   }
 };
 
+// Helper to handle API responses
+const handleResponse = async (response: Response) => {
+  if (!response.ok) {
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error('Unauthorized');
+    }
+    
+    let errorMessage = 'An error occurred';
+    try {
+      const data = await response.json();
+      errorMessage = data.message || errorMessage;
+    } catch (e) {
+      console.error('Error parsing error response:', e);
+    }
+    
+    throw new Error(errorMessage);
+  }
+  
+  return response.json();
+};
+
+// Helper to ensure endpoint has /api prefix
+const ensureApiPrefix = (endpoint: string) => {
+  return endpoint.startsWith('/api/') ? endpoint : `/api${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+};
+
 // Main API object with methods for different HTTP verbs
 const api = {
   // GET request
-  async get(url: string) {
-    const token = getToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json'
-    };
+  async get(endpoint: string) {
+    const apiEndpoint = ensureApiPrefix(endpoint);
+    console.log('Making GET request to:', `${baseURL}${apiEndpoint}`);
+    const token = localStorage.getItem('token');
     
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('GET request failed:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('CORS or network error detected. Check if the backend is running and CORS is properly configured.');
+      }
+      throw error;
     }
-    
-    const response = await fetch(`${baseURL}${url}`, {
-      method: 'GET',
-      headers
-    });
-    
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    return {
-      data: await response.json(),
-      status: response.status
-    };
   },
   
   // POST request
-  async post(url: string, data?: any) {  // Removed the 'options' parameter
-    const token = getToken();
-    const headers: HeadersInit = {};
+  async post(endpoint: string, data: any) {
+    const apiEndpoint = ensureApiPrefix(endpoint);
+    console.log('Making POST request to:', `${baseURL}${apiEndpoint}`);
+    console.log('Request data:', data);
+    const token = localStorage.getItem('token');
     
-    // Only set Content-Type for JSON requests, not for FormData
-    if (!(data instanceof FormData)) {
-      headers['Content-Type'] = 'application/json';
-    }
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-    
-    const response = await fetch(`${baseURL}${url}`, {
-      method: 'POST',
-      headers,
-      body: data instanceof FormData ? data : JSON.stringify(data)
-    });
-    
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
-    
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.message || `HTTP error! Status: ${response.status}`);
-    }
-    
-    // Check if response is JSON
-    const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      const responseData = await response.json();
-      console.log('API Response:', responseData); // Add logging
-      return {
-        data: responseData,
-        status: response.status
-      };
-    } else {
-      return {
-        data: await response.text(),
-        status: response.status
-      };
+    try {
+      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('POST request failed:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('CORS or network error detected. Check if the backend is running and CORS is properly configured.');
+      }
+      throw error;
     }
   },
   
   // PUT request
-  async put(url: string, data: any) {
-    const token = getToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json'
-    };
+  async put(endpoint: string, data: any) {
+    const apiEndpoint = ensureApiPrefix(endpoint);
+    console.log('Making PUT request to:', `${baseURL}${apiEndpoint}`);
+    const token = localStorage.getItem('token');
     
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('PUT request failed:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('CORS or network error detected. Check if the backend is running and CORS is properly configured.');
+      }
+      throw error;
     }
-    
-    const response = await fetch(`${baseURL}${url}`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify(data)
-    });
-    
-    if (response.status === 401) {
-      handleUnauthorized();
-    }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    return {
-      data: await response.json(),
-      status: response.status
-    };
   },
   
   // DELETE request
-  async delete(url: string) {
-    const token = getToken();
-    const headers: HeadersInit = {
-      'Content-Type': 'application/json'
-    };
+  async delete(endpoint: string) {
+    const apiEndpoint = ensureApiPrefix(endpoint);
+    console.log('Making DELETE request to:', `${baseURL}${apiEndpoint}`);
+    const token = localStorage.getItem('token');
     
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
+    try {
+      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('DELETE request failed:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('CORS or network error detected. Check if the backend is running and CORS is properly configured.');
+      }
+      throw error;
     }
+  },
+  
+  // File upload
+  async uploadFile(endpoint: string, file: File) {
+    const apiEndpoint = ensureApiPrefix(endpoint);
+    console.log('Making file upload request to:', `${baseURL}${apiEndpoint}`);
+    const token = localStorage.getItem('token');
     
-    const response = await fetch(`${baseURL}${url}`, {
-      method: 'DELETE',
-      headers
-    });
+    const formData = new FormData();
+    formData.append('file', file);
     
-    if (response.status === 401) {
-      handleUnauthorized();
+    try {
+      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+        method: 'POST',
+        headers: {
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: formData,
+        credentials: 'include'
+      });
+      
+      return handleResponse(response);
+    } catch (error) {
+      console.error('File upload failed:', error);
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error('CORS or network error detected. Check if the backend is running and CORS is properly configured.');
+      }
+      throw error;
     }
-    
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-    
-    return {
-      data: await response.json(),
-      status: response.status
-    };
   }
 };
 

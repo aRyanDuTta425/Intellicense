@@ -1,14 +1,12 @@
-import { Router } from 'express';
+import express from 'express';
 import authRoutes from './auth';
 import uploadRoutes from './upload';
 import analysisRoutes from './analysis';
-import requestRoutes from './request';
 
-const router = Router();
+const router = express.Router();
 
 router.use('/auth', authRoutes);
-router.use('/upload', uploadRoutes);
-router.use('/analysis', analysisRoutes);
-router.use('/request', requestRoutes);
+router.use('/uploads', uploadRoutes);
+router.use('/analyses', analysisRoutes);
 
 export default router; 

@@ -1,48 +1,49 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { prisma } from '../index';
-import { AuthRequest } from '../utils/types';
+import { PrismaClient } from '@prisma/client';
 
-// Middleware to authenticate JWT token
-export const authenticate = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
+const prisma = new PrismaClient();
+
+// Extend Express Request type to include user
+declare global {
+  namespace Express {
+    interface Request {
+      user?: any;
+    }
+  }
+}
+
+export async function verifyToken(req: Request, res: Response, next: NextFunction) {
   try {
-    // Get token from header
     const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ message: 'Authorization token is required' });
+    if (!authHeader) {
+      return res.status(401).json({ message: 'No token provided' });
     }
-    
-    // Extract token from header
-    const token = authHeader.split(' ')[1];
-    
+
+    const token = authHeader.split(' ')[1]; // Bearer <token>
     if (!token) {
-      return res.status(401).json({ message: 'Invalid authorization format' });
+      return res.status(401).json({ message: 'No token provided' });
     }
-    
-    // Verify token
-    const JWT_SECRET = process.env.JWT_SECRET || 'default_secret_key';
-    const decoded = jwt.verify(token, JWT_SECRET) as { id: string; email: string; role?: string };
-    
-    // Verify user exists in database
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+      where: { id: decoded.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true
+      }
     });
-    
+
     if (!user) {
-      return res.status(401).json({ message: 'User not found' });
+      return res.status(401).json({ message: 'Invalid token' });
     }
-    
-    // Attach user to request
-    req.user = { id: decoded.id, email: decoded.email, role: user.role };
-    
+
+    req.user = user;
     next();
   } catch (error) {
-    console.error('Authentication error:', error);
-    return res.status(401).json({ message: 'Invalid or expired token' });
+    console.error('Auth middleware error:', error);
+    return res.status(401).json({ message: 'Invalid token' });
   }
-}; 
+} 

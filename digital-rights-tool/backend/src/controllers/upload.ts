@@ -1,9 +1,7 @@
-import { Request, Response } from 'express';
-import { prisma } from '../index';
-import { AuthRequest } from '../utils/types';
-import fs from 'fs';
-import path from 'path';
 import { z } from 'zod';
+import { HonoContext } from '../types';
+import { R2PutOptions } from '@cloudflare/workers-types';
+import { Upload, KV_KEYS } from '../types';
 
 // Define validation schema for upload
 const uploadSchema = z.object({
@@ -12,152 +10,165 @@ const uploadSchema = z.object({
 });
 
 // Upload file
-export const uploadFile = async (req: AuthRequest, res: Response) => {
+export async function uploadFile(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    // Check if file was uploaded (handled by multer)
-    if (!req.file) {
-      return res.status(400).json({ message: 'No file uploaded' });
+    const formData = await c.req.formData();
+    const file = formData.get('file') as File;
+    const fileType = formData.get('fileType') as 'IMAGE' | 'ARTICLE' | 'VIDEO';
+    
+    if (!file || !fileType) {
+      return c.json({ message: 'No file or file type provided' }, 400);
     }
 
-    // Validate request body
-    const validation = uploadSchema.safeParse(req.body);
-    if (!validation.success) {
-      return res.status(400).json({ errors: validation.error.errors });
-    }
-
-    const { fileType, contentType } = validation.data;
-
-    // Use the file path provided by multer
-    const fileUrl = `/uploads/${req.file.filename}`;
-
-    // Create upload record
-    const upload = await prisma.upload.create({
-      data: {
-        userId: req.user.id,
-        fileName: req.file.originalname,
-        fileType,
-        contentType,
-        fileUrl,
+    const buffer = await file.arrayBuffer();
+    const fileUrl = `${Date.now()}-${file.name}`;
+    
+    const options: R2PutOptions = {
+      httpMetadata: {
+        contentType: file.type,
       },
-    });
+      customMetadata: {
+        originalName: file.name,
+        type: file.type,
+      },
+    };
+    
+    await c.env.UPLOADS.put(fileUrl, buffer, options);
 
-    return res.status(201).json({
-      message: 'File uploaded successfully',
-      upload,
-    });
+    const upload: Upload = {
+      id: crypto.randomUUID(),
+      userId: user.id,
+      fileType,
+      fileName: file.name,
+      fileUrl,
+      contentType: file.type,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Store upload metadata in KV
+    await c.env.ANALYSES.put(KV_KEYS.UPLOAD_BY_ID(upload.id), JSON.stringify(upload));
+    
+    // Add upload ID to user's uploads list
+    const userUploads = await c.env.ANALYSES.get(KV_KEYS.USER_UPLOADS(user.id));
+    const uploads = userUploads ? JSON.parse(userUploads) : [];
+    uploads.push(upload.id);
+    await c.env.ANALYSES.put(KV_KEYS.USER_UPLOADS(user.id), JSON.stringify(uploads));
+
+    return c.json(upload);
   } catch (error) {
     console.error('Upload error:', error);
-    return res.status(500).json({ message: 'Server error during upload' });
+    return c.json({ message: 'Upload failed' }, 500);
   }
-};
+}
 
 // Get user uploads
-export const getUserUploads = async (req: AuthRequest, res: Response) => {
+export async function getUploads(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    // Get all uploads for the user, including analysis if it exists
-    const uploads = await prisma.upload.findMany({
-      where: {
-        userId: req.user.id,
-      },
-      include: {
-        analysis: {
-          select: {
-            id: true,
-            licensingSummary: true,
-            riskScore: true,
-            createdAt: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+    const userUploads = await c.env.ANALYSES.get(KV_KEYS.USER_UPLOADS(user.id));
+    if (!userUploads) {
+      return c.json([]);
+    }
 
-    return res.json({ uploads });
+    const uploadIds = JSON.parse(userUploads);
+    const uploads = await Promise.all(
+      uploadIds.map(async (id: string) => {
+        const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(id));
+        return upload ? JSON.parse(upload) : null;
+      })
+    );
+
+    return c.json(uploads.filter(Boolean));
   } catch (error) {
-    console.error('Error fetching uploads:', error);
-    return res.status(500).json({ message: 'Server error while fetching uploads' });
+    console.error('Get uploads error:', error);
+    return c.json({ message: 'Failed to get uploads' }, 500);
   }
-};
+}
 
 // Get upload by ID
-export const getUploadById = async (req: AuthRequest, res: Response) => {
+export async function getUploadById(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
 
-    const { id } = req.params;
+    const { id } = c.req.param();
+    
+    const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(id));
+    if (!upload) {
+      return c.json({ message: 'Upload not found' }, 404);
+    }
 
-    // Find the upload
-    const upload = await prisma.upload.findUnique({
-      where: { id },
-      include: {
-        analysis: true,
+    const uploadData = JSON.parse(upload) as Upload;
+    if (uploadData.userId !== user.id) {
+      return c.json({ message: 'Not authorized to access this upload' }, 403);
+    }
+
+    const object = await c.env.UPLOADS.get(uploadData.fileUrl);
+    if (!object) {
+      return c.json({ message: 'File not found' }, 404);
+    }
+
+    return new Response(object.body, {
+      headers: {
+        'Content-Type': uploadData.contentType || 'application/octet-stream',
+        'Content-Disposition': `attachment; filename="${uploadData.fileName}"`,
       },
     });
-
-    if (!upload) {
-      return res.status(404).json({ message: 'Upload not found' });
-    }
-
-    // Check if user owns the upload
-    if (upload.userId !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to access this upload' });
-    }
-
-    return res.json({ upload });
   } catch (error) {
-    console.error('Error fetching upload:', error);
-    return res.status(500).json({ message: 'Server error while fetching upload' });
+    console.error('Get upload error:', error);
+    return c.json({ message: 'Failed to get upload' }, 500);
   }
-};
+}
 
 // Delete upload by ID
-export const deleteUpload = async (req: Request, res: Response) => {
+export async function deleteUpload(c: HonoContext) {
   try {
-    if (!req.user) {
-      return res.status(401).json({ message: 'Authentication required' });
+    const user = c.get('user');
+    if (!user) {
+      return c.json({ message: 'Unauthorized' }, 401);
     }
     
-    const { id } = req.params;
+    const { id } = c.req.param();
     
-    const upload = await prisma.upload.findUnique({
-      where: { id }
-    });
-    
+    const upload = await c.env.ANALYSES.get(KV_KEYS.UPLOAD_BY_ID(id));
     if (!upload) {
-      return res.status(404).json({ message: 'Upload not found' });
+      return c.json({ message: 'Upload not found' }, 404);
+    }
+
+    const uploadData = JSON.parse(upload) as Upload;
+    if (uploadData.userId !== user.id) {
+      return c.json({ message: 'Not authorized to delete this upload' }, 403);
     }
     
-    // Check if user owns the upload
-    if (upload.userId !== req.user.id) {
-      return res.status(403).json({ message: 'Not authorized to delete this upload' });
+    // Delete file from R2
+    await c.env.UPLOADS.delete(uploadData.fileUrl);
+    
+    // Delete upload metadata from KV
+    await c.env.ANALYSES.delete(KV_KEYS.UPLOAD_BY_ID(id));
+    
+    // Remove upload ID from user's uploads list
+    const userUploads = await c.env.ANALYSES.get(KV_KEYS.USER_UPLOADS(user.id));
+    if (userUploads) {
+      const uploads = JSON.parse(userUploads);
+      const updatedUploads = uploads.filter((uploadId: string) => uploadId !== id);
+      await c.env.ANALYSES.put(KV_KEYS.USER_UPLOADS(user.id), JSON.stringify(updatedUploads));
     }
     
-    // Delete file from filesystem
-    const filePath = path.join(process.cwd(), upload.fileUrl);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-    
-    // Delete from database (cascade will delete analysis)
-    await prisma.upload.delete({
-      where: { id }
-    });
-    
-    res.json({ message: 'Upload deleted successfully' });
+    return c.json({ message: 'Upload deleted successfully' });
   } catch (error) {
     console.error('Error deleting upload:', error);
-    res.status(500).json({ message: 'Server error while deleting upload' });
+    return c.json({ message: 'Server error while deleting upload' }, 500);
   }
-}; 
+} 

@@ -6,6 +6,9 @@ import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
 import { PrismaClient } from '@prisma/client';
+import { register, login, getProfile } from './controllers/auth';
+import { verifyToken } from './middleware/auth';
+import authRoutes from './routes/auth';
 
 // Load environment variables
 dotenv.config();
@@ -15,21 +18,19 @@ export const prisma = new PrismaClient();
 
 // Create Express app
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 3000;
 
 // Middleware
+app.use(express.json());
 app.use(cors({
-  origin: [process.env.CLIENT_URL || 'http://localhost:5176', 'http://localhost:5173'],
+  origin: ['https://digital-rights-tool.vercel.app', 'http://localhost:5173'],
   credentials: true
 }));
-app.use(express.json());
 app.use(morgan('dev'));
 
 // Import routes
-import authRoutes from './routes/auth';
 import uploadRoutes from './routes/upload';
 import analysisRoutes from './routes/analysis';
-import requestRoutes from './routes/request';
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, '../uploads');
@@ -63,19 +64,18 @@ app.use('/api/upload', (req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/analysis', analysisRoutes);
-app.use('/api/request', requestRoutes);
 
 // Serve uploaded files
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health check route
-app.get('/api/health', (_, res) => {
-  res.status(200).json({ status: 'ok', message: 'Server is running with Neon PostgreSQL database' });
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
 });
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT} with Neon PostgreSQL database`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 // Handle graceful shutdown
