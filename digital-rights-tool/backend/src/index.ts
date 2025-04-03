@@ -17,16 +17,72 @@ dotenv.config();
 export const prisma = new PrismaClient();
 
 // Create Express app
-const app = express();
+export const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: ['https://digital-rights-tool.vercel.app', 'http://localhost:5173'],
+  origin: [
+    'https://googlehacka-p24bgpi3i-aryan-duttas-projects.vercel.app',
+    'http://localhost:5173'
+  ],
   credentials: true
 }));
+
+// Custom logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Environment:', process.env.NODE_ENV);
+  console.log('Vercel:', process.env.VERCEL);
+  next();
+});
+
 app.use(morgan('dev'));
+
+// Handle favicon.ico requests
+app.get('/favicon.ico', (req, res) => {
+  console.log('Favicon request received');
+  res.status(204).end();
+});
+
+// Root route handler with detailed logging
+app.get('/', (req, res) => {
+  console.log('Root route accessed');
+  console.log('Request headers:', req.headers);
+  console.log('Request URL:', req.url);
+  console.log('Request method:', req.method);
+  
+  res.json({
+    message: 'Digital Rights Tool API',
+    status: 'running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    vercel: process.env.VERCEL
+  });
+});
+
+// Error handling middleware
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error('Error occurred:', err);
+  res.status(500).json({
+    error: 'Internal Server Error',
+    message: err.message,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 404 handler
+app.use((req: express.Request, res: express.Response) => {
+  console.log('404 Not Found:', req.method, req.url);
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Route ${req.method} ${req.url} not found`,
+    timestamp: new Date().toISOString()
+  });
+});
 
 // Import routes
 import uploadRoutes from './routes/upload';
@@ -73,10 +129,13 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+// Only start the server if we're not in a serverless environment
+if (!process.env.VERCEL) {
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
+  });
+}
 
 // Handle graceful shutdown
 process.on('SIGINT', async () => {

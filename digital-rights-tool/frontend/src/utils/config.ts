@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = 'https://digital-rights-tool-backend.aryandutta425.workers.dev';
+export const API_URL = import.meta.env.VITE_API_URL;
 
 // Environment
 export const IS_PRODUCTION = import.meta.env.PROD;

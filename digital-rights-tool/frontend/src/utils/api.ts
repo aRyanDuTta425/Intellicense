@@ -1,7 +1,8 @@
 // Fetch-based API client
+import { API_URL } from './config';
 
 // Base API URL
-const baseURL = 'https://digital-rights-tool-backend.aryandutta425.workers.dev';
+const baseURL = API_URL;
 
 // Log the base URL for debugging
 console.log('API Base URL:', baseURL);
