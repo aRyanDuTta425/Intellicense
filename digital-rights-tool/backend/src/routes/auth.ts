@@ -1,9 +1,8 @@
-import express from 'express';
-import { Router } from 'express';
+import { Hono } from 'hono';
 import { register, login, getProfile } from '../controllers/auth';
 import { verifyToken } from '../middleware/auth';
 
-const router = Router();
+const router = new Hono();
 
 // Public routes
 router.post('/register', register);

@@ -1,17 +1,16 @@
-import express from 'express';
-import { Router } from 'express';
+import { Hono } from 'hono';
 import { verifyToken } from '../middleware/auth';
-import { uploadFile, getFiles, getFile, deleteFile } from '../controllers/upload';
+import { uploadFile, getUploads, getUploadById, deleteUpload } from '../controllers/upload';
 
-const router = Router();
+const router = new Hono();
 
 // Apply auth middleware to all routes
-router.use(verifyToken);
+router.use('*', verifyToken);
 
 // Routes
 router.post('/', uploadFile);
-router.get('/', getFiles);
-router.get('/:id', getFile);
-router.delete('/:id', deleteFile);
+router.get('/', getUploads);
+router.get('/:id', getUploadById);
+router.delete('/:id', deleteUpload);
 
 export const uploadRoutes = router; 
