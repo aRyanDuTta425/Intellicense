@@ -220,7 +220,7 @@ app.get('/api/analyses/:id', (c) => {
 });
 
 // Request routes
-app.post('/api/requests', (c) => {
+app.post('/api/requests', async (c) => {
   const { question } = await c.req.json();
   
   // Mock responses based on the actual question
