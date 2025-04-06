@@ -53,6 +53,191 @@ app.get('/health', (c) => {
   return c.json({ status: 'ok' });
 });
 
+// API Routes
+// Auth routes
+app.post('/api/auth/register', (c) => {
+  // Mock successful registration
+  return c.json({
+    user: {
+      id: 'mock-user-id',
+      name: 'Mock User',
+      email: 'mock@example.com'
+    },
+    token: 'mock-token'
+  });
+});
+
+app.post('/api/auth/login', (c) => {
+  // Mock successful login
+  return c.json({
+    user: {
+      id: 'mock-user-id',
+      name: 'Mock User',
+      email: 'mock@example.com'
+    },
+    token: 'mock-token'
+  });
+});
+
+app.get('/api/auth/profile', (c) => {
+  // Mock user profile
+  return c.json({
+    user: {
+      id: 'mock-user-id',
+      name: 'Mock User',
+      email: 'mock@example.com'
+    }
+  });
+});
+
+// Upload routes
+app.post('/api/uploads', (c) => {
+  // Mock successful upload
+  return c.json({
+    upload: {
+      id: 'mock-upload-id',
+      userId: 'mock-user-id',
+      fileType: 'IMAGE',
+      fileName: 'mock-file.jpg',
+      fileUrl: 'https://example.com/mock-file.jpg',
+      contentType: 'image/jpeg',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  });
+});
+
+app.get('/api/uploads', (c) => {
+  // Mock uploads list
+  return c.json({
+    uploads: [
+      {
+        id: 'mock-upload-1',
+        userId: 'mock-user-id',
+        fileType: 'IMAGE',
+        fileName: 'sample-image.jpg',
+        fileUrl: 'https://example.com/sample-image.jpg',
+        contentType: 'image/jpeg',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-upload-2',
+        userId: 'mock-user-id',
+        fileType: 'ARTICLE',
+        fileName: 'sample-article.txt',
+        fileUrl: 'https://example.com/sample-article.txt',
+        contentType: 'text/plain',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ]
+  });
+});
+
+app.get('/api/uploads/:id', (c) => {
+  // Mock single upload
+  const id = c.req.param('id');
+  return c.json({
+    upload: {
+      id,
+      userId: 'mock-user-id',
+      fileType: 'IMAGE',
+      fileName: 'sample-image.jpg',
+      fileUrl: 'https://example.com/sample-image.jpg',
+      contentType: 'image/jpeg',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  });
+});
+
+app.delete('/api/uploads/:id', (c) => {
+  // Mock successful deletion
+  return c.json({ success: true });
+});
+
+// Analysis routes
+app.post('/api/analyses/:id', (c) => {
+  // Mock successful analysis creation
+  return c.json({
+    analysis: {
+      id: 'mock-analysis-id',
+      uploadId: c.req.param('id'),
+      licensingSummary: 'Analysis in progress...',
+      riskScore: 0,
+      createdAt: new Date().toISOString()
+    }
+  });
+});
+
+app.get('/api/analyses/:id', (c) => {
+  // Mock analysis
+  return c.json({
+    analysis: {
+      id: 'mock-analysis-id',
+      uploadId: c.req.param('id'),
+      licensingSummary: 'This content is licensed under the MIT License, which allows for commercial use, modification, and distribution with minimal restrictions.',
+      riskScore: 10,
+      createdAt: new Date().toISOString()
+    }
+  });
+});
+
+// Request routes
+app.post('/api/requests', (c) => {
+  // Mock successful request creation
+  return c.json({
+    request: {
+      id: 'mock-request-id',
+      userId: 'mock-user-id',
+      question: 'What are the licensing terms for this image?',
+      answer: 'This image is licensed under the MIT License.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  });
+});
+
+app.get('/api/requests', (c) => {
+  // Mock requests list
+  return c.json({
+    requests: [
+      {
+        id: 'mock-request-1',
+        userId: 'mock-user-id',
+        question: 'What are the licensing terms for this image?',
+        answer: 'This image is licensed under the MIT License.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-request-2',
+        userId: 'mock-user-id',
+        question: 'Can I use this image for commercial purposes?',
+        answer: 'Yes, the MIT License allows for commercial use.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ]
+  });
+});
+
+app.get('/api/requests/:id', (c) => {
+  // Mock single request
+  const id = c.req.param('id');
+  return c.json({
+    request: {
+      id,
+      userId: 'mock-user-id',
+      question: 'What are the licensing terms for this image?',
+      answer: 'This image is licensed under the MIT License.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  });
+});
+
 module.exports = app;
 `;
 
