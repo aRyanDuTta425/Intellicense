@@ -91,19 +91,47 @@ app.get('/api/auth/profile', (c) => {
 });
 
 // Upload routes
-app.post('/api/uploads', (c) => {
-  // Mock successful upload
-  return c.json({
-    upload: {
+app.post('/api/uploads', async (c) => {
+  const formData = await c.req.formData();
+  const file = formData.get('file');
+  const fileType = formData.get('fileType');
+  
+  // Mock successful upload with different file types
+  const mockResponses = {
+    'IMAGE': {
       id: 'mock-upload-id',
       userId: 'mock-user-id',
       fileType: 'IMAGE',
-      fileName: 'mock-file.jpg',
-      fileUrl: 'https://example.com/mock-file.jpg',
+      fileName: 'mock-image.jpg',
+      fileUrl: 'https://example.com/mock-image.jpg',
       contentType: 'image/jpeg',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
+    },
+    'PDF': {
+      id: 'mock-upload-id-pdf',
+      userId: 'mock-user-id',
+      fileType: 'PDF',
+      fileName: 'mock-document.pdf',
+      fileUrl: 'https://example.com/mock-document.pdf',
+      contentType: 'application/pdf',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    'VIDEO': {
+      id: 'mock-upload-id-video',
+      userId: 'mock-user-id',
+      fileType: 'VIDEO',
+      fileName: 'mock-video.mp4',
+      fileUrl: 'https://example.com/mock-video.mp4',
+      contentType: 'video/mp4',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
+  };
+
+  return c.json({
+    upload: mockResponses[fileType] || mockResponses['IMAGE']
   });
 });
 
@@ -193,13 +221,42 @@ app.get('/api/analyses/:id', (c) => {
 
 // Request routes
 app.post('/api/requests', (c) => {
-  // Mock successful request creation
+  const { question } = await c.req.json();
+  
+  // Mock responses based on the actual question
+  const mockResponses = {
+    'What are the fair use guidelines for using images in my educational blog?': {
+      id: 'mock-request-1',
+      userId: 'mock-user-id',
+      question: 'What are the fair use guidelines for using images in my educational blog?',
+      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    'Can I use Creative Commons licensed images for my commercial website?': {
+      id: 'mock-request-2',
+      userId: 'mock-user-id',
+      question: 'Can I use Creative Commons licensed images for my commercial website?',
+      answer: 'Creative Commons licenses provide a standardized way to grant permissions for using creative works. For commercial websites, you can use CC-licensed images, but you must check the specific license terms. Some licenses like CC-BY and CC-BY-SA allow commercial use, while others like CC-NC (Non-Commercial) do not. Always verify the license terms and provide proper attribution as required by the license.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    'How do I determine if a work is in the public domain?': {
+      id: 'mock-request-3',
+      userId: 'mock-user-id',
+      question: 'How do I determine if a work is in the public domain?',
+      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  };
+
   return c.json({
-    request: {
+    request: mockResponses[question] || {
       id: 'mock-request-id',
       userId: 'mock-user-id',
-      question: 'What are the licensing terms for this image?',
-      answer: 'This image is licensed under the MIT License.',
+      question: question,
+      answer: 'I understand your question about ' + question + '. Please provide more specific details about your use case.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -207,22 +264,30 @@ app.post('/api/requests', (c) => {
 });
 
 app.get('/api/requests', (c) => {
-  // Mock requests list
+  // Mock requests list with actual questions
   return c.json({
     requests: [
       {
         id: 'mock-request-1',
         userId: 'mock-user-id',
-        question: 'What are the licensing terms for this image?',
-        answer: 'This image is licensed under the MIT License.',
+        question: 'What are the fair use guidelines for using images in my educational blog?',
+        answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
       {
         id: 'mock-request-2',
         userId: 'mock-user-id',
-        question: 'Can I use this image for commercial purposes?',
-        answer: 'Yes, the MIT License allows for commercial use.',
+        question: 'Can I use Creative Commons licensed images for my commercial website?',
+        answer: 'Creative Commons licenses provide a standardized way to grant permissions for using creative works. For commercial websites, you can use CC-licensed images, but you must check the specific license terms. Some licenses like CC-BY and CC-BY-SA allow commercial use, while others like CC-NC (Non-Commercial) do not. Always verify the license terms and provide proper attribution as required by the license.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      {
+        id: 'mock-request-3',
+        userId: 'mock-user-id',
+        question: 'How do I determine if a work is in the public domain?',
+        answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -231,14 +296,41 @@ app.get('/api/requests', (c) => {
 });
 
 app.get('/api/requests/:id', (c) => {
-  // Mock single request
   const id = c.req.param('id');
+  // Mock single request with actual questions
+  const mockRequests = {
+    'mock-request-1': {
+      id: 'mock-request-1',
+      userId: 'mock-user-id',
+      question: 'What are the fair use guidelines for using images in my educational blog?',
+      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    'mock-request-2': {
+      id: 'mock-request-2',
+      userId: 'mock-user-id',
+      question: 'Can I use Creative Commons licensed images for my commercial website?',
+      answer: 'Creative Commons licenses provide a standardized way to grant permissions for using creative works. For commercial websites, you can use CC-licensed images, but you must check the specific license terms. Some licenses like CC-BY and CC-BY-SA allow commercial use, while others like CC-NC (Non-Commercial) do not. Always verify the license terms and provide proper attribution as required by the license.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    'mock-request-3': {
+      id: 'mock-request-3',
+      userId: 'mock-user-id',
+      question: 'How do I determine if a work is in the public domain?',
+      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  };
+
   return c.json({
-    request: {
+    request: mockRequests[id] || {
       id,
       userId: 'mock-user-id',
-      question: 'What are the licensing terms for this image?',
-      answer: 'This image is licensed under the MIT License.',
+      question: 'Sample question',
+      answer: 'Sample answer',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
