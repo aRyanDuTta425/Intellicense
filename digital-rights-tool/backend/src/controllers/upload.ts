@@ -19,25 +19,11 @@ export async function uploadFile(c: HonoContext) {
     console.log('Content-Type:', contentType);
     
     if (!contentType.includes('multipart/form-data')) {
-      console.log('Request is not multipart/form-data, returning mock response');
-      // Return a mock response even if the request is not multipart/form-data
-      const mockUpload = {
-        id: crypto.randomUUID(),
-        userId: 'mock-user-id',
-        fileType: 'IMAGE',
-        fileName: 'mock-file.jpg',
-        fileUrl: 'https://example.com/mock-file.jpg',
-        contentType: 'image/jpeg',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        analysis: {
-          id: crypto.randomUUID(),
-          licensingSummary: 'Analysis in progress...',
-          riskScore: 0,
-          createdAt: new Date().toISOString()
-        }
-      };
-      return c.json({ upload: mockUpload });
+      console.error('Invalid content type:', contentType);
+      return c.json({
+        error: 'Invalid request',
+        message: 'Content-Type must be multipart/form-data'
+      }, 400);
     }
     
     // Try to parse form data
@@ -51,29 +37,14 @@ export async function uploadFile(c: HonoContext) {
       console.log('File:', file ? 'present' : 'missing', 'FileType:', fileType);
       
       if (!file || !fileType) {
-        console.log('No file or file type provided, returning mock response');
-        // Return a mock response even if file or fileType is missing
-        const mockUpload = {
-          id: crypto.randomUUID(),
-          userId: 'mock-user-id',
-          fileType: fileType || 'IMAGE',
-          fileName: file ? file.name : 'mock-file.jpg',
-          fileUrl: `https://example.com/mock-${file ? file.name : 'file.jpg'}`,
-          contentType: file ? file.type : 'image/jpeg',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          analysis: {
-            id: crypto.randomUUID(),
-            licensingSummary: 'Analysis in progress...',
-            riskScore: 0,
-            createdAt: new Date().toISOString()
-          }
-        };
-        return c.json({ upload: mockUpload });
+        console.error('Missing required fields');
+        return c.json({
+          error: 'Invalid request',
+          message: 'File and fileType are required'
+        }, 400);
       }
 
-      // Mock upload response
-      console.log('Returning mock upload response');
+      // Create mock upload response
       const mockUpload = {
         id: crypto.randomUUID(),
         userId: 'mock-user-id',
@@ -82,57 +53,23 @@ export async function uploadFile(c: HonoContext) {
         fileUrl: `https://example.com/mock-${file.name}`,
         contentType: file.type,
         createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        analysis: {
-          id: crypto.randomUUID(),
-          licensingSummary: 'Analysis in progress...',
-          riskScore: 0,
-          createdAt: new Date().toISOString()
-        }
+        updatedAt: new Date().toISOString()
       };
 
       return c.json({ upload: mockUpload });
     } catch (formDataError) {
       console.error('Error parsing form data:', formDataError);
-      // Return a mock response even if form data parsing fails
-      const mockUpload = {
-        id: crypto.randomUUID(),
-        userId: 'mock-user-id',
-        fileType: 'IMAGE',
-        fileName: 'mock-file.jpg',
-        fileUrl: 'https://example.com/mock-file.jpg',
-        contentType: 'image/jpeg',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-        analysis: {
-          id: crypto.randomUUID(),
-          licensingSummary: 'Analysis in progress...',
-          riskScore: 0,
-          createdAt: new Date().toISOString()
-        }
-      };
-      return c.json({ upload: mockUpload });
+      return c.json({
+        error: 'Invalid request',
+        message: 'Error parsing form data'
+      }, 400);
     }
   } catch (error) {
     console.error('Upload error:', error);
-    // Return a mock response even if an error occurs
-    const mockUpload = {
-      id: crypto.randomUUID(),
-      userId: 'mock-user-id',
-      fileType: 'IMAGE',
-      fileName: 'mock-file.jpg',
-      fileUrl: 'https://example.com/mock-file.jpg',
-      contentType: 'image/jpeg',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      analysis: {
-        id: crypto.randomUUID(),
-        licensingSummary: 'Analysis in progress...',
-        riskScore: 0,
-        createdAt: new Date().toISOString()
-      }
-    };
-    return c.json({ upload: mockUpload });
+    return c.json({
+      error: 'Server error',
+      message: 'An error occurred while processing the upload'
+    }, 500);
   }
 }
 

@@ -59,12 +59,16 @@ export const AnalysisPage: React.FC = () => {
             setAnalysis(analysisResponse.data.analysis);
           } else {
             // If no analysis data, start analysis
-            startAnalysis(id);
+            if (id) {
+              startAnalysis(id);
+            }
           }
         } catch (error) {
           console.error('Error fetching analysis:', error);
           // If no analysis yet, create one
-          startAnalysis(id);
+          if (id) {
+            startAnalysis(id);
+          }
         }
       } catch (error) {
         console.error('Error fetching upload:', error);

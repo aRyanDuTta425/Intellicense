@@ -1,5 +1,4 @@
-import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
-import api from '../utils/api';
+import React, { createContext, useState, useContext, ReactNode } from 'react';
 
 // User type definition
 export interface User {
@@ -44,11 +43,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(mockUser);
   const [token, setToken] = useState<string | null>('mock-token');
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [loading, setLoading] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
+  const [loading] = useState<boolean>(false);
+  const [error] = useState<string | null>(null);
 
   // Register a new user
-  const register = async (name: string, email: string, password: string) => {
+  const register = async (_name: string, _email: string, _password: string) => {
     // Mock successful registration
     setUser(mockUser);
     setToken('mock-token');
@@ -56,7 +55,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Login user
-  const login = async (email: string, password: string) => {
+  const login = async (_email: string, _password: string) => {
     // Mock successful login
     setUser(mockUser);
     setToken('mock-token');
