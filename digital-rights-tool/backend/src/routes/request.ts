@@ -1,16 +1,16 @@
-import express from 'express';
+import { Hono } from 'hono';
 import { createRequest, getUserRequests, getRequestById } from '../controllers/request';
-import { authenticate } from '../middleware/auth';
+import { verifyToken } from '../middleware/auth';
 
-const router = express.Router();
+const router = new Hono();
 
 // Create a new request
-router.post('/', authenticate, createRequest);
+router.post('/', verifyToken, createRequest);
 
 // Get user's requests
-router.get('/', authenticate, getUserRequests);
+router.get('/', verifyToken, getUserRequests);
 
 // Get a specific request
-router.get('/:id', authenticate, getRequestById);
+router.get('/:id', verifyToken, getRequestById);
 
 export default router; 

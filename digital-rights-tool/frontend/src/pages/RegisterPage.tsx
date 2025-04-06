@@ -36,7 +36,7 @@ export const RegisterPage: React.FC = () => {
     try {
       setIsLoading(true);
       setErrorMessage(null);
-      await registerUser(data.email, data.password, data.name);
+      await registerUser(data.name, data.email, data.password);
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Registration error:', error);

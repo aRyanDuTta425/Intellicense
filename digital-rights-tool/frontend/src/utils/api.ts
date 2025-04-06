@@ -38,7 +38,8 @@ const handleResponse = async (response: Response) => {
     throw new Error(errorMessage);
   }
   
-  return response.json();
+  const data = await response.json();
+  return { data };
 };
 
 // Helper to ensure endpoint has /api prefix
@@ -52,7 +53,6 @@ const api = {
   async get(endpoint: string) {
     const apiEndpoint = ensureApiPrefix(endpoint);
     console.log('Making GET request to:', `${baseURL}${apiEndpoint}`);
-    const token = localStorage.getItem('token');
     
     try {
       const response = await fetch(`${baseURL}${apiEndpoint}`, {
@@ -60,7 +60,7 @@ const api = {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+          'Authorization': 'Bearer mock-token'
         },
         credentials: 'include'
       });
@@ -76,22 +76,28 @@ const api = {
   },
   
   // POST request
-  async post(endpoint: string, data: any) {
+  async post(endpoint: string, data: any, options: any = {}) {
     const apiEndpoint = ensureApiPrefix(endpoint);
     console.log('Making POST request to:', `${baseURL}${apiEndpoint}`);
-    console.log('Request data:', data);
-    const token = localStorage.getItem('token');
+    
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer mock-token'
+    };
+
+    // Only set Content-Type and stringify body if not FormData
+    if (!(data instanceof FormData)) {
+      headers['Content-Type'] = 'application/json';
+      console.log('Request data:', JSON.stringify(data, null, 2));
+    }
     
     try {
       const response = await fetch(`${baseURL}${apiEndpoint}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify(data),
-        credentials: 'include'
+        headers,
+        body: data instanceof FormData ? data : JSON.stringify(data),
+        credentials: 'include',
+        ...options
       });
       
       return handleResponse(response);

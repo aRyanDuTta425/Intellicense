@@ -87,7 +87,7 @@ export const UploadPage: React.FC = () => {
       
       console.log('Uploading file...');
       //@ts-ignore
-      const uploadResponse = await api.post('/upload', formData, {
+      const uploadResponse = await api.post('/uploads', formData, {
         onUploadProgress: (progressEvent: { loaded: number; total: number }) => {
           const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           console.log(`Upload progress: ${progress}%`);
@@ -108,8 +108,14 @@ export const UploadPage: React.FC = () => {
       }
 
       console.log('Making analysis request for upload ID:', uploadId);
-      await api.post(`/analysis/${uploadId}`, {});
-      console.log('Analysis request sent');
+      try {
+        await api.post(`/analyses/${uploadId}`, {});
+        console.log('Analysis request sent');
+      } catch (analysisError) {
+        console.error('Error starting analysis:', analysisError);
+        // Continue to the analysis page even if analysis request fails
+        // The analysis page will handle retrying the analysis
+      }
       
       navigate(`/analysis/${uploadId}`);
     } catch (error: any) {

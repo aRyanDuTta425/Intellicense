@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import {useNavigate } from 'react-router-dom';
+import {useNavigate, useParams } from 'react-router-dom';
 import {useForm } from 'react-hook-form';
 import {zodResolver } from '@hookform/resolvers/zod';
 import {z } from 'zod';
@@ -33,12 +33,14 @@ interface Request {
 }
 
 export const QuestionPage: React.FC = () => {
+  const { id } = useParams<{ id: string }>();
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [uploads, setUploads] = useState<Upload[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [recentQuestions, setRecentQuestions] = useState<Request[]>([]);
+  const [currentQuestion, setCurrentQuestion] = useState<Request | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   const { 
@@ -61,27 +63,44 @@ export const QuestionPage: React.FC = () => {
     }
     
     const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        setIsLoading(true);
-        setError(null);
-        
-        // Fetch user's uploads with our fetch-based API client
-        const uploadsResponse = await api.get('/upload');
+        // Fetch uploads
+        const uploadsResponse = await api.get('/uploads');
         setUploads(uploadsResponse.data.uploads);
         
-        // Fetch recent questions with our fetch-based API client
-        const requestsResponse = await api.get('/request');
-        setRecentQuestions(requestsResponse.data.requests.slice(0, 5)); // Get only most recent 5
+        // If we have an ID, fetch the specific question
+        if (id) {
+          try {
+            const questionResponse = await api.get(`/requests/${id}`);
+            setCurrentQuestion(questionResponse.data.request);
+          } catch (error) {
+            console.error('Error fetching question:', error);
+            setError('Failed to load the question. It may not exist or you may not have permission to view it.');
+          }
+        } else {
+          // Fetch questions
+          try {
+            const questionsResponse = await api.get('/requests');
+            setRecentQuestions(questionsResponse.data.requests.slice(0, 5)); // Get only most recent 5
+          } catch (error) {
+            console.error('Error fetching questions:', error);
+            // Don't show error for this, just set empty array
+            setRecentQuestions([]);
+          }
+        }
       } catch (error) {
         console.error('Error fetching data:', error);
-        setError('Failed to load data. Please try again.');
+        setError('Failed to load data. Please try again later.');
       } finally {
         setIsLoading(false);
       }
     };
     
     fetchData();
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, id]);
   
   const onSubmit = async (data: QuestionFormData) => {
     try {
@@ -94,7 +113,7 @@ export const QuestionPage: React.FC = () => {
       };
       
       // Submit question with our fetch-based API client
-      const response = await api.post('/request', requestData);
+      const response = await api.post('/requests', requestData);
       
       // Add new question to recent questions
       setRecentQuestions([response.data.request, ...recentQuestions.slice(0, 4)]);
@@ -102,7 +121,8 @@ export const QuestionPage: React.FC = () => {
       // Reset form
       reset();
       
-      // Show success message or redirect to request page
+      // Navigate to the question page
+      navigate(`/question/${response.data.request.id}`);
     } catch (error: any) {
       console.error('Error submitting question:', error);
       setError(error.message || 'Failed to submit question. Please try again.');
@@ -120,6 +140,76 @@ export const QuestionPage: React.FC = () => {
     });
   };
   
+  // If we're viewing a specific question
+  if (id && currentQuestion) {
+    return (
+      <div className="container-custom">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Question Details</h1>
+          <p className="text-lg text-gray-600">
+            View the details of your question and the AI-generated answer
+          </p>
+        </div>
+        
+        <div className="card">
+          <div className="p-6 border-b border-gray-200">
+            <div className="flex justify-between items-start">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">Your Question</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Asked on {formatDate(currentQuestion.createdAt)}
+                </p>
+              </div>
+              <button
+                onClick={() => navigate('/question')}
+                className="btn btn-outline text-sm"
+              >
+                Back to Questions
+              </button>
+            </div>
+          </div>
+          
+          <div className="p-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+                {error}
+              </div>
+            )}
+            
+            <div className="mb-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Question</h3>
+              <div className="text-gray-700 bg-gray-50 p-4 rounded border border-gray-200">
+                {currentQuestion.question}
+              </div>
+            </div>
+            
+            <div className="mb-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Answer</h3>
+              <div className="prose max-w-none text-gray-700 bg-gray-50 p-4 rounded border border-gray-200 whitespace-pre-line">
+                {currentQuestion.answer}
+              </div>
+            </div>
+            
+            {currentQuestion.upload && (
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Related Content</h3>
+                <div className="text-gray-700 bg-gray-50 p-4 rounded border border-gray-200">
+                  <p>
+                    <span className="font-medium">File:</span> {currentQuestion.upload.fileName}
+                  </p>
+                  <p>
+                    <span className="font-medium">Type:</span> {currentQuestion.upload.fileType}
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // Regular question page with form
   return (
     <div className="container-custom">
       <div className="mb-8">

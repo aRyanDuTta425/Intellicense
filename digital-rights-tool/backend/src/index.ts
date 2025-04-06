@@ -9,6 +9,7 @@ import { verifyToken } from './middleware/auth';
 import { authRoutes } from './routes/auth';
 import { uploadRoutes } from './routes/upload';
 import { analysisRoutes } from './routes/analysis';
+import requestRoutes from './routes/request';
 
 // Initialize Prisma client
 export const prisma = new PrismaClient();
@@ -19,12 +20,16 @@ const app = new Hono();
 // Middleware
 app.use('*', logger());
 app.use('*', prettyJSON());
-app.use('*', cors({
-  origin: [
-    'https://googlehacka-p24bgpi3i-aryan-duttas-projects.vercel.app',
-    'http://localhost:5173'
-  ],
-  credentials: true
+app.use(cors({
+  origin: (origin) => {
+    // Allow all origins by returning the origin itself
+    return origin;
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposeHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400 // 24 hours
 }));
 
 // Root route handler
@@ -46,11 +51,12 @@ app.get('/health', (c) => {
 
 // Routes
 app.route('/api/auth', authRoutes);
-app.route('/api/upload', uploadRoutes);
-app.route('/api/analysis', analysisRoutes);
+app.route('/api/uploads', uploadRoutes);
+app.route('/api/analyses', analysisRoutes);
+app.route('/api/requests', requestRoutes);
 
-// Serve static files
-app.use('/uploads/*', serveStatic({ root: './uploads' }));
+// Serve static files - commented out for local development
+// app.use('/uploads/*', serveStatic({ root: './uploads' }));
 
 // Error handling
 app.onError((err, c) => {
@@ -85,4 +91,5 @@ process.on('SIGTERM', async () => {
   process.exit(0);
 });
 
+// Export for both Node.js and Cloudflare Workers
 export default app; 

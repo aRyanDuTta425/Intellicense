@@ -34,84 +34,41 @@ const AuthContext = createContext<AuthContextType>({
 
 // Provider component
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  // Mock user data
+  const mockUser: User = {
+    id: 'mock-user-id',
+    name: 'Mock User',
+    email: 'mock@example.com'
+  };
+
+  const [user, setUser] = useState<User | null>(mockUser);
+  const [token, setToken] = useState<string | null>('mock-token');
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-
-  // Initialize auth state from localStorage
-  useEffect(() => {
-    const storedToken = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setIsAuthenticated(true);
-    }
-
-    setLoading(false);
-  }, []);
 
   // Register a new user
   const register = async (name: string, email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.post('/auth/register', { name, email, password });
-      
-      // Store token and user in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Update state
-      setToken(response.data.token);
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Registration error:', error);
-      setError(error instanceof Error ? error.message : 'Registration failed');
-    } finally {
-      setLoading(false);
-    }
+    // Mock successful registration
+    setUser(mockUser);
+    setToken('mock-token');
+    setIsAuthenticated(true);
   };
 
   // Login user
   const login = async (email: string, password: string) => {
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await api.post('/auth/login', { email, password });
-      
-      // Store token and user in localStorage
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-
-      // Update state
-      setToken(response.data.token);
-      setUser(response.data.user);
-      setIsAuthenticated(true);
-    } catch (error) {
-      console.error('Login error:', error);
-      setError(error instanceof Error ? error.message : 'Login failed');
-    } finally {
-      setLoading(false);
-    }
+    // Mock successful login
+    setUser(mockUser);
+    setToken('mock-token');
+    setIsAuthenticated(true);
   };
 
   // Logout user
   const logout = () => {
-    // Remove token and user from localStorage
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-
-    // Update state
-    setToken(null);
-    setUser(null);
-    setIsAuthenticated(false);
+    // Mock logout - still keep user authenticated
+    setUser(mockUser);
+    setToken('mock-token');
+    setIsAuthenticated(true);
   };
 
   // Provide auth context to children

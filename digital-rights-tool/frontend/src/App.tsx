@@ -26,6 +26,7 @@ const App: React.FC = () => {
             <Route path="upload" element={<UploadPage />} />
             <Route path="analysis/:id" element={<AnalysisPage />} />
             <Route path="question" element={<QuestionPage />} />
+            <Route path="question/:id" element={<QuestionPage />} />
             <Route path="*" element={<NotFoundPage />} />
           </Route>
         </Routes>

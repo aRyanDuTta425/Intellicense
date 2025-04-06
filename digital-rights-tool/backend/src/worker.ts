@@ -14,20 +14,16 @@ const app = new Hono<{ Bindings: Env; Variables: Variables }>();
 // Middleware
 app.use('*', logger());
 app.use('*', prettyJSON());
-app.use('*', cors({
-  origin: [
-    'http://localhost:5173',
-    'http://localhost:5174',
-    'https://digital-rights-tool.vercel.app',
-    'https://digital-rights-tool-frontend.vercel.app',
-    'https://*.vercel.app',
-    'https://googlehacka-eqffdiisp-aryan-duttas-projects.vercel.app'
-  ],
+app.use(cors({
+  origin: (origin) => {
+    // Allow all origins by returning the origin itself
+    return origin;
+  },
   credentials: true,
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
   exposeHeaders: ['Content-Type', 'Authorization'],
-  maxAge: 86400
+  maxAge: 86400 // 24 hours
 }));
 
 // Root route

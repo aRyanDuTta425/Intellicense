@@ -37,61 +37,77 @@ export const AnalysisPage: React.FC = () => {
     }
 
     const fetchAnalysis = async () => {
+      setIsLoading(true);
+      setError(null);
+      
       try {
-        setIsLoading(true);
-        setError(null);
-
-        // First check if the upload exists
-        const uploadResponse = await api.get(`/upload/${id}`);
+        // Fetch upload details
+        const uploadResponse = await api.get(`/uploads/${id}`);
         // @ts-ignore
         const { upload } = uploadResponse.data;
-
+        
+        if (!upload) {
+          setError('Upload not found. Please try again later.');
+          setIsLoading(false);
+          return;
+        }
+        
         // Check if analysis exists
         try {
-          const analysisResponse = await api.get(`/analysis/${id}`);
-          setAnalysis(analysisResponse.data.analysis);
-        } catch (error) {
-          // If no analysis yet, create one
-          setIsAnalyzing(true);
-
-          try {
-            await api.post(`/analysis/${id}`, {});
-            // Poll for analysis every 2 seconds
-            const interval = setInterval(async () => {
-              try {
-                const response = await api.get(`/analysis/${id}`);
-                const data = response.data;
-
-                if (data.analysis) {
-                  setAnalysis(data.analysis);
-                  setIsAnalyzing(false);
-                  clearInterval(interval);
-                }
-              } catch (error) {
-                
-              }
-            }, 2000);
-
-            
-            setTimeout(() => {
-              clearInterval(interval);
-              if (isAnalyzing) {
-                setIsAnalyzing(false);
-                setError('Analysis is taking longer than expected. Please try refreshing the page.');
-              }
-            }, 60000);
-
-            return () => clearInterval(interval);
-          } catch (error) {
-            setIsAnalyzing(false);
-            setError('Failed to start analysis. Please try again.');
+          const analysisResponse = await api.get(`/analyses/${id}`);
+          if (analysisResponse.data && analysisResponse.data.analysis) {
+            setAnalysis(analysisResponse.data.analysis);
+          } else {
+            // If no analysis data, start analysis
+            startAnalysis(id);
           }
+        } catch (error) {
+          console.error('Error fetching analysis:', error);
+          // If no analysis yet, create one
+          startAnalysis(id);
         }
-      } catch (error: any) {
-        console.error('Error fetching analysis:', error);
-        setError(error.message || 'Failed to load analysis. Please try again.');
+      } catch (error) {
+        console.error('Error fetching upload:', error);
+        setError('Failed to load upload. Please try again later.');
       } finally {
         setIsLoading(false);
+      }
+    };
+    
+    const startAnalysis = async (uploadId: string) => {
+      setIsAnalyzing(true);
+      
+      try {
+        await api.post(`/analyses/${uploadId}`, {});
+        // Poll for analysis every 2 seconds
+        const interval = setInterval(async () => {
+          try {
+            const response = await api.get(`/analyses/${uploadId}`);
+            const data = response.data;
+            
+            if (data && data.analysis) {
+              setAnalysis(data.analysis);
+              setIsAnalyzing(false);
+              clearInterval(interval);
+            }
+          } catch (error) {
+            console.error('Error polling for analysis:', error);
+          }
+        }, 2000);
+        
+        setTimeout(() => {
+          clearInterval(interval);
+          if (isAnalyzing) {
+            setIsAnalyzing(false);
+            setError('Analysis is taking longer than expected. Please try refreshing the page.');
+          }
+        }, 60000);
+
+        return () => clearInterval(interval);
+      } catch (error) {
+        console.error('Error creating analysis:', error);
+        setIsAnalyzing(false);
+        setError('Failed to start analysis. Please try again.');
       }
     };
 
@@ -99,10 +115,10 @@ export const AnalysisPage: React.FC = () => {
   }, [id, isAuthenticated, navigate]);
 
   const handleAskQuestion = async () => {
-    if (!question.trim()) return;
+    if (!question.trim() || !id) return;
 
     try {
-      await api.post('/request', {
+      await api.post('/requests', {
         question,
         uploadId: id
       });
