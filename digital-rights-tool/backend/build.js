@@ -251,15 +251,62 @@ app.post('/api/requests', async (c) => {
     }
   };
 
-  return c.json({
-    request: mockResponses[question] || {
-      id: 'mock-request-id',
-      userId: 'mock-user-id',
-      question: question,
-      answer: 'I understand your question about ' + question + '. Please provide more specific details about your use case.',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+  // Generate a more detailed fallback response based on the question
+  const generateDetailedResponse = (question) => {
+    // Extract keywords from the question
+    const keywords = question.toLowerCase().split(' ');
+    
+    // Check for common topics
+    if (keywords.some(word => ['copyright', 'license', 'permission', 'rights'].includes(word))) {
+      return {
+        id: 'mock-request-id',
+        userId: 'mock-user-id',
+        question: question,
+        answer: 'Regarding your question about copyright and licensing: Copyright law protects original creative works, giving creators exclusive rights to reproduce, distribute, and display their work. To use copyrighted material, you typically need permission from the rights holder. However, there are exceptions like fair use, which allows limited use for purposes such as criticism, comment, news reporting, teaching, scholarship, or research. For your specific case, I recommend consulting with a legal professional to ensure compliance with copyright laws.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } else if (keywords.some(word => ['image', 'photo', 'picture', 'photograph'].includes(word))) {
+      return {
+        id: 'mock-request-id',
+        userId: 'mock-user-id',
+        question: question,
+        answer: 'Regarding your question about images: Images are protected by copyright law, and using them without permission can lead to legal issues. When using images, consider these options: 1) Use images you own or have created, 2) Obtain proper licenses or permissions, 3) Use images with Creative Commons licenses (check the specific terms), 4) Use images in the public domain, or 5) Rely on fair use if your use qualifies. For commercial projects, it\\'s especially important to ensure you have proper rights to use the images.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } else if (keywords.some(word => ['video', 'film', 'movie', 'footage'].includes(word))) {
+      return {
+        id: 'mock-request-id',
+        userId: 'mock-user-id',
+        question: question,
+        answer: 'Regarding your question about video content: Video content is protected by copyright law, and using it without permission can lead to legal issues. When using video content, consider these options: 1) Use videos you own or have created, 2) Obtain proper licenses or permissions, 3) Use videos with Creative Commons licenses (check the specific terms), 4) Use videos in the public domain, or 5) Rely on fair use if your use qualifies. For commercial projects, it\\'s especially important to ensure you have proper rights to use the video content.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } else if (keywords.some(word => ['text', 'article', 'writing', 'content'].includes(word))) {
+      return {
+        id: 'mock-request-id',
+        userId: 'mock-user-id',
+        question: question,
+        answer: 'Regarding your question about text content: Text content is protected by copyright law, and using it without permission can lead to legal issues. When using text content, consider these options: 1) Use text you own or have written, 2) Obtain proper licenses or permissions, 3) Use text with Creative Commons licenses (check the specific terms), 4) Use text in the public domain, or 5) Rely on fair use if your use qualifies. For commercial projects, it\\'s especially important to ensure you have proper rights to use the text content.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+    } else {
+      return {
+        id: 'mock-request-id',
+        userId: 'mock-user-id',
+        question: question,
+        answer: 'Thank you for your question about digital rights and licensing. To provide you with the most accurate information, I need to understand your specific use case better. Could you please provide more details about: 1) The type of content you want to use (image, video, text, etc.), 2) How you plan to use it (personal, commercial, educational, etc.), 3) Where you found the content, and 4) Any licensing information you have. With this information, I can give you more specific guidance on copyright compliance and licensing requirements.',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
     }
+  };
+
+  return c.json({
+    request: mockResponses[question] || generateDetailedResponse(question)
   });
 });
 
@@ -325,15 +372,20 @@ app.get('/api/requests/:id', (c) => {
     }
   };
 
-  return c.json({
-    request: mockRequests[id] || {
+  // Generate a more detailed fallback response for unknown request IDs
+  const generateDetailedResponse = (id) => {
+    return {
       id,
       userId: 'mock-user-id',
-      question: 'Sample question',
-      answer: 'Sample answer',
+      question: 'How can I ensure my use of digital content complies with copyright law?',
+      answer: 'To ensure your use of digital content complies with copyright law, follow these guidelines: 1) Understand that most creative works are protected by copyright automatically upon creation, 2) Obtain proper permissions or licenses before using copyrighted content, 3) Consider using content with Creative Commons licenses or from the public domain, 4) Evaluate if your use qualifies as fair use (for educational, commentary, or transformative purposes), 5) Always provide proper attribution when required, 6) Keep records of your permissions and licenses, and 7) When in doubt, consult with a legal professional specializing in copyright law.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
-    }
+    };
+  };
+
+  return c.json({
+    request: mockRequests[id] || generateDetailedResponse(id)
   });
 });
 
