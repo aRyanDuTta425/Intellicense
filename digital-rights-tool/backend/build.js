@@ -177,6 +177,13 @@ app.get('/api/analyses/:id', (c) => {
     analysis: {
       id: 'mock-analysis-id',
       uploadId: c.req.param('id'),
+      upload: {
+        id: c.req.param('id'),
+        fileName: 'sample-image.jpg',
+        fileType: 'IMAGE',
+        fileUrl: 'https://example.com/sample-image.jpg',
+        contentType: 'image/jpeg'
+      },
       licensingSummary: 'This content is licensed under the MIT License, which allows for commercial use, modification, and distribution with minimal restrictions.',
       riskScore: 10,
       createdAt: new Date().toISOString()
