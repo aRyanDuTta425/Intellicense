@@ -21,6 +21,8 @@ const handleUnauthorized = () => {
 
 // Helper to handle API responses
 const handleResponse = async (response: Response) => {
+  console.log('Response status:', response.status);
+  
   if (!response.ok) {
     if (response.status === 401) {
       handleUnauthorized();
@@ -29,17 +31,41 @@ const handleResponse = async (response: Response) => {
     
     let errorMessage = 'An error occurred';
     try {
-      const data = await response.json();
-      errorMessage = data.message || errorMessage;
+      // Check if the response is JSON
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const data = await response.json();
+        errorMessage = data.message || data.error || errorMessage;
+      } else {
+        // If not JSON, try to get the text
+        const text = await response.text();
+        console.error('Non-JSON error response:', text);
+        errorMessage = `Server error: ${response.status} ${response.statusText}`;
+      }
     } catch (e) {
       console.error('Error parsing error response:', e);
+      // Try to get the text if JSON parsing fails
+      try {
+        const text = await response.text();
+        console.error('Error response text:', text);
+      } catch (textError) {
+        console.error('Could not get error response text:', textError);
+      }
     }
     
     throw new Error(errorMessage);
   }
   
-  const data = await response.json();
-  return { data };
+  // For successful responses, check if it's JSON
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
+    return { data };
+  } else {
+    // If not JSON, return the text
+    const text = await response.text();
+    return { data: { text } };
+  }
 };
 
 // Helper to ensure endpoint has /api prefix
@@ -78,7 +104,13 @@ const api = {
   // POST request
   async post(endpoint: string, data: any, options: any = {}) {
     const apiEndpoint = ensureApiPrefix(endpoint);
-    console.log('Making POST request to:', `${baseURL}${apiEndpoint}`);
+    const fullUrl = `${baseURL}${apiEndpoint}`;
+    console.log('Making POST request to:', fullUrl);
+    console.log('Request headers:', {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer mock-token',
+      ...(data instanceof FormData ? {} : { 'Content-Type': 'application/json' })
+    });
     
     const headers: Record<string, string> = {
       'Accept': 'application/json',
@@ -89,16 +121,26 @@ const api = {
     if (!(data instanceof FormData)) {
       headers['Content-Type'] = 'application/json';
       console.log('Request data:', JSON.stringify(data, null, 2));
+    } else {
+      console.log('Request data: FormData with entries:', Array.from(data.entries()).map(([key, value]) => {
+        if (value instanceof File) {
+          return [key, { name: value.name, type: value.type, size: value.size }];
+        }
+        return [key, value];
+      }));
     }
     
     try {
-      const response = await fetch(`${baseURL}${apiEndpoint}`, {
+      const response = await fetch(fullUrl, {
         method: 'POST',
         headers,
         body: data instanceof FormData ? data : JSON.stringify(data),
         credentials: 'include',
         ...options
       });
+      
+      console.log('Response status:', response.status);
+      console.log('Response headers:', Object.fromEntries(response.headers.entries()));
       
       return handleResponse(response);
     } catch (error) {
