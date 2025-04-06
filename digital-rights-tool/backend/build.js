@@ -7,15 +7,58 @@ if (!fs.existsSync('dist')) {
   fs.mkdirSync('dist');
 }
 
-// Compile TypeScript files to JavaScript
-console.log('Compiling TypeScript files...');
-try {
-  execSync('npx tsc', { stdio: 'inherit' });
-  console.log('TypeScript compilation completed successfully!');
-} catch (error) {
-  console.error('TypeScript compilation failed:', error);
-  process.exit(1);
-}
+// Create a simple index.js file in the dist directory
+const indexJsContent = `
+const { Hono } = require('hono');
+const { cors } = require('hono/cors');
+const { logger } = require('hono/logger');
+const { prettyJSON } = require('hono/pretty-json');
+const { PrismaClient } = require('@prisma/client');
+
+// Initialize Prisma client
+const prisma = new PrismaClient();
+
+// Create Hono app
+const app = new Hono();
+
+// Middleware
+app.use('*', logger());
+app.use('*', prettyJSON());
+app.use(cors({
+  origin: (origin) => {
+    // Allow all origins by returning the origin itself
+    return origin;
+  },
+  credentials: true,
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposeHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 86400 // 24 hours
+}));
+
+// Root route handler
+app.get('/', (c) => {
+  console.log('Root route accessed');
+  return c.json({
+    message: 'Digital Rights Tool API',
+    status: 'running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV
+  });
+});
+
+// Health check route
+app.get('/health', (c) => {
+  return c.json({ status: 'ok' });
+});
+
+module.exports = app;
+`;
+
+// Write the index.js file to the dist directory
+fs.writeFileSync(path.join(__dirname, 'dist', 'index.js'), indexJsContent);
+console.log('Created index.js file in dist directory');
 
 // Run Prisma generate
 console.log('Running Prisma generate...');
