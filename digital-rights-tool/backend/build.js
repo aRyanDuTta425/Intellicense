@@ -56,9 +56,34 @@ app.get('/health', (c) => {
 module.exports = app;
 `;
 
+// Create a server.js file in the dist directory
+const serverJsContent = `
+const app = require('./index');
+const { serve } = require('@hono/node-server');
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+
+console.log(\`Starting server on port \${PORT}...\`);
+
+serve({
+  fetch: app.fetch,
+  port: Number(PORT),
+}, (info) => {
+  console.log(\`Server is running on http://localhost:\${info.port}\`);
+});
+`;
+
 // Write the index.js file to the dist directory
 fs.writeFileSync(path.join(__dirname, 'dist', 'index.js'), indexJsContent);
 console.log('Created index.js file in dist directory');
+
+// Write the server.js file to the dist directory
+fs.writeFileSync(path.join(__dirname, 'dist', 'server.js'), serverJsContent);
+console.log('Created server.js file in dist directory');
 
 // Run Prisma generate
 console.log('Running Prisma generate...');
