@@ -2,5 +2,9 @@
   "dependencies": {
     "framer-motion": "^12.6.2",
     "lucide-react": "^0.485.0"
+  },
+  "scripts": {
+    "build": "cd digital-rights-tool/backend && npm install && npm run build",
+    "start": "cd digital-rights-tool/backend && npm start"
   }
 }
