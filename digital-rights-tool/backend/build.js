@@ -229,7 +229,7 @@ app.post('/api/requests', async (c) => {
       id: 'mock-request-1',
       userId: 'mock-user-id',
       question: 'What are the fair use guidelines for using images in my educational blog?',
-      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
+      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\\'t affect the market value of the original work, and 4) The purpose is educational. However, it\\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -245,7 +245,7 @@ app.post('/api/requests', async (c) => {
       id: 'mock-request-3',
       userId: 'mock-user-id',
       question: 'How do I determine if a work is in the public domain?',
-      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
+      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -271,7 +271,7 @@ app.get('/api/requests', (c) => {
         id: 'mock-request-1',
         userId: 'mock-user-id',
         question: 'What are the fair use guidelines for using images in my educational blog?',
-        answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
+        answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\\'t affect the market value of the original work, and 4) The purpose is educational. However, it\\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       },
@@ -287,7 +287,7 @@ app.get('/api/requests', (c) => {
         id: 'mock-request-3',
         userId: 'mock-user-id',
         question: 'How do I determine if a work is in the public domain?',
-        answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
+        answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       }
@@ -303,7 +303,7 @@ app.get('/api/requests/:id', (c) => {
       id: 'mock-request-1',
       userId: 'mock-user-id',
       question: 'What are the fair use guidelines for using images in my educational blog?',
-      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\'t affect the market value of the original work, and 4) The purpose is educational. However, it\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
+      answer: 'Fair use is a legal doctrine that allows limited use of copyrighted material without requiring permission from the rights holders. For educational blogs, you can use copyrighted images if: 1) The use is transformative, 2) The amount used is reasonable, 3) The use doesn\\'t affect the market value of the original work, and 4) The purpose is educational. However, it\\'s always safer to use Creative Commons licensed images or obtain proper permissions.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -319,7 +319,7 @@ app.get('/api/requests/:id', (c) => {
       id: 'mock-request-3',
       userId: 'mock-user-id',
       question: 'How do I determine if a work is in the public domain?',
-      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
+      answer: 'Public domain works are not protected by copyright and can be freely used. Works enter the public domain when: 1) The copyright has expired (typically 70 years after the author\\'s death), 2) The work was created by the U.S. government, 3) The creator explicitly dedicated the work to the public domain, or 4) The work was published before 1927. You can verify public domain status through copyright databases or consult with a legal professional.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
