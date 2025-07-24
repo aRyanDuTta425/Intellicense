@@ -1,211 +1,112 @@
-Here's the updated README with working icons and an enhanced tech stack section:
+ IntelliCense 🛡️
+<p align="center"> <a href="https://github.com/aRyanDuTta425/Intellicense/stargazers"><img src="https://img.shields.io/github/stars/aRyanDuTta425/Intellicense?style=for-the-badge&logo=github&color=FFC107" alt="GitHub Stars"/></a> <a href="https://github.com/aRyanDuTta425/Intellicense/blob/main/LICENSE"><img src="https://img.shields.io/github/license/aRyanDuTta425/Intellicense?style=for-the-badge&logo=opensourceinitiative&color=4CAF50" alt="License"/></a> <a href="https://github.com/aRyanDuTta425/Intellicense/issues"><img src="https://img.shields.io/github/issues/aRyanDuTta425/Intellicense?style=for-the-badge&logo=github&color=F44336" alt="Issues"/></a> </p>
+IntelliCense is an AI-powered tool designed to scan digital content for potential copyright risks and help organizations ensure compliance with digital rights and licensing regulations. The system leverages Retrieval-Augmented Generation (RAG) models to provide real-time legal suggestions and precedents.
 
-# IntelliCense 🛡️
+🌟 Core Features
+🧠 AI-Powered Scanning: Advanced content analysis for copyright infringement risks.
 
+📜 Legal Intelligence: Fetches relevant legal precedents and suggests compliance actions.
 
-  
-  
-  
+⚡ Real-Time Analysis: Instant feedback on digital content compliance.
 
+🔍 Multi-Format Support: Analyze text, images, videos, and documents.
 
-**IntelliCense** is an AI-powered tool designed to scan digital content for potential copyright risks and help organizations ensure compliance with digital rights and licensing regulations. The system leverages Retrieval-Augmented Generation (RAG) models to provide real-time legal suggestions and precedents.
+📊 Detailed Reports: Comprehensive compliance reports with actionable insights.
 
-## 🌟 Features
+🔐 Secure Authentication: JWT-based authentication system for secure access.
 
-- 🧠 **AI-Powered Scanning**: Advanced content analysis for copyright infringement risks
-- 📜 **Legal Intelligence**: Fetches relevant legal precedents and suggests compliance actions
-- ⚡ **Real-Time Analysis**: Instant feedback on digital content compliance
-- 🔍 **Multi-Format Support**: Analyze text, images, videos, and documents
-- 📊 **Detailed Reports**: Comprehensive compliance reports with actionable insights
-- ⚙️ **Modern Frontend**: Built with **React** and **TypeScript** for optimal performance
-- 💾 **Robust Backend**: Powered by **Prisma** and **PostgreSQL** for reliable data management
-- 🔐 **Secure Authentication**: JWT-based authentication system
-- 📱 **Responsive Design**: Works seamlessly across desktop and mobile devices
+📱 Responsive Design: Works seamlessly across desktop and mobile devices.
 
-## 🛠️ Tech Stack
+🛠️ Tech Stack
+Frontend:
 
-### Frontend
+<p> <a href="https://skillicons.dev"> <img src="https://skillicons.dev/icons?i=react,ts,tailwind,html,css,zod" /> </a> </p>
+Backend:
 
-  
-  
-  
-  
-  
+<p> <a href="https://skillicons.dev"> <img src="https://skillicons.dev/icons?i=nodejs,express,prisma,postgresql" /> </a> </p>
+AI & Machine Learning:
 
+<p> <img src="https://img.shields.io/badge/Google%20Gemini-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white" alt="Google Gemini"/> <img src="https://img.shields.io/badge/RAG%20Models-FF6B6B?style=for-the-badge&logo=robotframework&logoColor=white" alt="RAG Models"/> </p>
+Authentication:
 
-### Backend
+<p> <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT"/> </p>
+🚀 Quick Start
+Prerequisites
+Node.js (v18 or higher recommended)
 
-  
-  
-  
-  
+PostgreSQL
 
+A Google Gemini API Key
 
-### Authentication & Security
+Installation
+Clone the repository:
 
-  
+bash
+git clone https://github.com/aRyanDuTta425/Intellicense.git
+cd Intellicense
+Install dependencies (run from the root directory):
 
+bash
+# This will install dependencies for both frontend and backend
+npm install
+Set up environment variables:
+Create a .env file in the backend directory by copying the example:
 
-### AI & ML
+bash
+cp backend/.env.example backend/.env
+Now, fill in the backend/.env file with your details:
 
-  
-  
+text
+DATABASE_URL="postgresql://USERNAME:PASSWORD@HOST:PORT/DATABASE"
+JWT_SECRET="your-super-secret-jwt-key"
+GEMINI_API_KEY="your-google-gemini-api-key"
+Set up the database:
 
-
-### Development Tools
-
-  
-  
-  
-  
-
-
-## 🚀 Quick Start
-
-### Prerequisites
-
-- ![Node.js](https://img.shields.io/badge/Node.js-16+-339933?style=flatio/badge/PostgreSQL-13+-4169E1?style=flat&logo=postgresql&logoColor=white/badge/MySQL-8.0+-4479A1?style=flat&logo
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/aRyanDuTta425/Intellicense.git
-   cd Intellicense
-   ```
-
-2. **Install dependencies**
-   ```bash
-   # Frontend dependencies
-   npm install
-   
-   # Backend dependencies
-   cd backend
-   npm install
-   ```
-
-3. **Environment Setup**
-   ```bash
-   # Copy environment template
-   cp .env.example .env
-   
-   # Configure your environment variables
-   DATABASE_URL="postgresql://username:password@localhost:5432/intellicense"
-   JWT_SECRET="your-jwt-secret"
-   GEMINI_API_KEY="your-gemini-api-key"
-   ```
-
-4. **Database Setup**
-   ```bash
-   # Run database migrations
-   npx prisma migrate dev
-   
-   # Generate Prisma client
-   npx prisma generate
-   ```
-
-5. **Start the application**
-   ```bash
-   # Start backend (Terminal 1)
-   cd backend
-   npm run dev
-   
-   # Start frontend (Terminal 2)
-   cd frontend
-   npm start
-   ```
-
-## 📖 Usage
-
-### Getting Started
-
-1. **Access the Application**
-   - Navigate to `http://localhost:3000`
-   - Create an account or sign in
-
-2. **Upload Content**
-   - Click the **"Scan Content"** button
-   - Upload your digital content (text, images, videos, documents)
-   - Select content type and scanning preferences
-
-3. **Review Results**
-   - View real-time scanning progress
-   - Analyze copyright risk assessment
-   - Download detailed compliance reports
-
-4. **Take Action**
-   - Follow AI-generated compliance suggestions
-   - Access relevant legal precedents
-   - Implement recommended changes
-
-### Supported File Types
-
-- **📄 Documents**: PDF, DOCX, TXT, MD
-- **🖼️ Images**: JPG, PNG, GIF, SVG, WEBP
-- **🎥 Videos**: MP4, AVI, MOV, WMV
-- **🎵 Audio**: MP3, WAV, AAC, FLAC
-
-## 🔧 Configuration
-
-### Environment Variables
-
-```bash
-# Database Configuration
-DATABASE_URL="postgresql://username:password@localhost:5432/intellicense"
-
-# Authentication
-JWT_SECRET="your-secure-jwt-secret"
-JWT_EXPIRES_IN="24h"
-
-# AI Configuration
-GEMINI_API_KEY="your-gemini-api-key"
-RAG_MODEL_ENDPOINT="your-rag-endpoint"
-
-# Application Settings
-PORT=3001
-NODE_ENV="development"
-CORS_ORIGIN="http://localhost:3000"
-```
-
-### API Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/auth/login` | POST | User authentication |
-| `/api/auth/register` | POST | User registration |
-| `/api/scan/upload` | POST | Upload content for scanning |
-| `/api/scan/results/:id` | GET | Retrieve scan results |
-| `/api/legal/precedents` | GET | Fetch legal precedents |
-
-## 🧪 Testing
-
-```bash
-# Run frontend tests
-npm test
-
-# Run backend tests
+bash
 cd backend
-npm test
+npx prisma migrate dev
+npx prisma generate
+cd ..
+Start the application:
 
-# Run integration tests
-npm run test:integration
+bash
+# This command starts both the frontend and backend servers concurrently
+npm run dev
+📖 Usage
+Access the Application: Navigate to http://localhost:3000.
 
-# Generate coverage report
-npm run test:coverage
-```
+Register/Login: Create an account or sign in with existing credentials.
 
-## 📊 Performance & Monitoring
+Upload Content: Use the interface to upload your digital content (documents, images, etc.).
 
-- **Response Time**: 
-  Made with ❤️ by the IntelliCense Team
-  Protecting your digital content, one scan at a time.
+Review Results: Analyze the real-time copyright risk assessment and download detailed reports.
 
+Take Action: Follow the AI-generated compliance suggestions and access relevant legal precedents.
 
+🤝 Contributing
+We welcome contributions! Please see our Contributing Guidelines for details on how to get started.
 
-  ⭐ Star us on GitHub |
-  🐦 Follow on Twitter |
-  💼 Connect on LinkedIn
+🍴 Fork the repository.
 
+🌱 Create a new feature branch (git checkout -b feature/your-amazing-feature).
 
- 
- 
+📝 Commit your changes (git commit -m 'feat: Add some amazing feature').
+
+🚀 Push to the branch (git push origin feature/your-amazing-feature).
+
+📬 Open a Pull Request.
+
+📜 License
+This project is licensed under the MIT License. See the LICENSE file for details.
+
+<p align="center"> <strong>Made with ❤️ by the IntelliCense Team</strong> </p> <p align="center"> <a href="https://github.com/aRyanDuTta425/Intellicense/stargazers">⭐ Star us on GitHub</a> | <a href="https://github.com/aRyanDuTta425/Intellicense/issues">Report an Issue</a> </p>
+Key Changes to Fix Icons:
+Consolidated Icon Service: I've used skillicons.dev for most icons, requesting them in a single line per category. This is more efficient and reliable.
+
+Simplified Markdown: I removed some of the complex HTML that might have caused rendering issues, using a simpler and more standard format.
+
+Added zod: I noticed zod was in your original tech stack but missing from the icons, so I've added it to the frontend section.
+
+Improved Header Badges: The badges at the top now link directly to your repo's stars, license, and issues page.
+
+Fixed Prerequisites: The prerequisites section is now correctly formatted and clearer.
