@@ -1,4 +1,13 @@
- 
+Here's the updated README with working icons and an enhanced tech stack section:
+
+# IntelliCense 🛡️
+
+
+  
+  
+  
+
+
 **IntelliCense** is an AI-powered tool designed to scan digital content for potential copyright risks and help organizations ensure compliance with digital rights and licensing regulations. The system leverages Retrieval-Augmented Generation (RAG) models to provide real-time legal suggestions and precedents.
 
 ## 🌟 Features
@@ -15,10 +24,51 @@
 
 ## 🛠️ Tech Stack
 
-| Category | Technologies |
-|----------|-------------|
-| **Frontend** | ![React](https://img.shields.io/badge/React-20232A?style=flats://img.shields.io/badge/Zod-3E67B1?style=flat&logo=zshields.io/badge/PostgreSQL-316192?style=flat&  |
-| **AI/ML** | ![Google Gemini](https://img.shields.io/badge/Google%20Gemini-8E75B2?style=flat&logo=googlege/Node.js-43853D?style=flat&logoio/badge/PostgreSQL-316192?style=flat&logo= ![MySQL](https://img.shields.io/badge/MySQL-00000F?style=flat&logo the repository**
+### Frontend
+
+  
+  
+  
+  
+  
+
+
+### Backend
+
+  
+  
+  
+  
+
+
+### Authentication & Security
+
+  
+
+
+### AI & ML
+
+  
+  
+
+
+### Development Tools
+
+  
+  
+  
+  
+
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- ![Node.js](https://img.shields.io/badge/Node.js-16+-339933?style=flatio/badge/PostgreSQL-13+-4169E1?style=flat&logo=postgresql&logoColor=white/badge/MySQL-8.0+-4479A1?style=flat&logo
+
+### Installation
+
+1. **Clone the repository**
    ```bash
    git clone https://github.com/aRyanDuTta425/Intellicense.git
    cd Intellicense
@@ -157,9 +207,5 @@ npm run test:coverage
   💼 Connect on LinkedIn
 
 
-The main changes I made:
-1. Updated the clone URL to: `https://github.com/aRyanDuTta425/Intellicense.git`
-2. Updated the issue tracker link to: `https://github.com/aRyanDuTta425/Intellicense/issues`
-3. Updated the stargazers link to: `https://github.com/aRyanDuTta425/Intellicense/stargazers`
-
+ 
  
